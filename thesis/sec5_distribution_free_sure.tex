@@ -1,0 +1,229 @@
+\section{A Distribution-Free SURE for the Scaled-Identity Target}\label{sec:df-sure}
+
+Section~4 built an unbiased risk estimate for Ledoit--Wolf shrinkage toward $\nu I$, but it used normality twice: once in Stein's lemma, and again to write the moments of $\operatorname{tr}S$ and $\operatorname{tr}(S^2)$ in closed form. This section shows that neither use is necessary. We start again from Yi's lemma (Lemma~\ref{lem:yi}), which needs only $\mathbb{E}S = \Sigma$, and estimate each unknown term directly with averages over pairs of days. The result is a SURE that is exactly unbiased for every distribution with finite fourth moments. It is the main contribution of this thesis.
+
+\subsection{Assumptions}
+
+The data are the daily return vectors $x_1, \dots, x_T \in \mathbb{R}^N$, with $N \ge 2$. We assume:
+\begin{enumerate}
+  \item[(A1)] $x_1, \dots, x_T$ are independent and identically distributed. In particular every day has the same covariance matrix $\Sigma$.
+  \item[(A2)] The mean is known to be zero, $\mathbb{E}x_t = 0$.
+  \item[(A3)] Fourth moments are finite, $\mathbb{E}\|x_t\|^4 < \infty$.
+\end{enumerate}
+No distributional form is assumed. As in Section~4,
+\[
+  S = \frac{1}{T}\sum_{t=1}^T x_t x_t', \qquad
+  F = \nu I, \quad \nu = \frac{\operatorname{tr}(S)}{N}, \qquad
+  \hat\Sigma_\alpha = \alpha F + (1-\alpha)S .
+\]
+By (A1) and (A2), $\mathbb{E}S = \Sigma$, so Lemma~\ref{lem:yi} applies. Write $y_t = x_t x_t'$ for the daily outer product, so that $S$ is the average of $y_1, \dots, y_T$, and write
+\[
+  m_4 = \mathbb{E}\|x_t\|^4
+\]
+for the fourth moment of the length of a daily return vector. By (A1) it does not depend on $t$.
+
+The two assumptions play different roles. The risk decomposition below needs only $\mathbb{E}S = \Sigma$, that is, a common mean and covariance across days. The unbiased estimators need more: independence between days, and the same fourth moments on every day.
+
+\subsection{The risk in terms of three moments}
+
+\begin{lemma}\label{lem:df-risk}
+Let $D = \mathbb{E}\|F - S\|^2$, $V = \sum_{i,j}\operatorname{Var}(s_{ij})$ and $C = \sum_{i,j}\operatorname{Cov}(f_{ij}, s_{ij})$. Under (A1)--(A3),
+\[
+  R(\alpha) = \mathbb{E}\|\hat\Sigma_\alpha - \Sigma\|^2 = \alpha^2 D + (1 - 2\alpha)V + 2\alpha C .
+\]
+\end{lemma}
+
+\begin{proof}
+Apply Lemma~\ref{lem:yi} with $\hat\Sigma = \hat\Sigma_\alpha$. First, $\hat\Sigma_\alpha - S = \alpha(F - S)$, so $\mathbb{E}\|\hat\Sigma_\alpha - S\|^2 = \alpha^2 D$. Second, covariance is linear in its first argument, so
+\[
+  \operatorname{Cov}\left(\alpha f_{ij} + (1-\alpha)s_{ij},\, s_{ij}\right) = \alpha\operatorname{Cov}(f_{ij}, s_{ij}) + (1-\alpha)\operatorname{Var}(s_{ij}).
+\]
+Summing over $(i,j)$, Lemma~\ref{lem:yi} gives $R(\alpha) = \alpha^2 D - V + 2\alpha C + 2(1-\alpha)V$, which is the claim.
+\end{proof}
+
+$D$ is the expectation of an observable quantity, so $\|F - S\|^2$ estimates it without bias. The work is in $V$ and $C$.
+
+\begin{lemma}\label{lem:df-moments}
+Under (A1)--(A3),
+\[
+  V = \frac{m_4 - \operatorname{tr}(\Sigma^2)}{T}, \qquad
+  C = \frac{\operatorname{Var}(\operatorname{tr}S)}{N} = \frac{m_4 - (\operatorname{tr}\Sigma)^2}{NT}.
+\]
+\end{lemma}
+
+\begin{proof}
+\emph{The term $V$.} The entry $s_{ij} = \frac{1}{T}\sum_t x_{ti}x_{tj}$ is an average of $T$ i.i.d.\ terms, so
+\[
+  \operatorname{Var}(s_{ij}) = \frac{1}{T}\operatorname{Var}(x_{ti}x_{tj}) = \frac{1}{T}\left( \mathbb{E}[x_{ti}^2 x_{tj}^2] - \sigma_{ij}^2 \right).
+\]
+Sum over $(i,j)$. Since $\sum_{i,j}x_{ti}^2x_{tj}^2 = \big(\sum_i x_{ti}^2\big)^2 = \|x_t\|^4$ and $\sum_{i,j}\sigma_{ij}^2 = \operatorname{tr}(\Sigma^2)$, we get $V = (m_4 - \operatorname{tr}(\Sigma^2))/T$.
+
+\emph{The term $C$.} The target has entries $f_{ij} = \nu\,\delta_{ij}$, where $\delta_{ij}$ is $1$ if $i = j$ and $0$ otherwise. Only diagonal entries contribute, so
+\[
+  C = \sum_{i=1}^N \operatorname{Cov}(\nu, s_{ii})
+  = \operatorname{Cov}\Big(\frac{\operatorname{tr}S}{N},\, \sum_{i} s_{ii}\Big)
+  = \frac{\operatorname{Var}(\operatorname{tr}S)}{N}.
+\]
+Now $\operatorname{tr}S = \frac{1}{T}\sum_t \|x_t\|^2$ is again an average of $T$ i.i.d.\ terms, each with mean $\mathbb{E}\|x_t\|^2 = \operatorname{tr}\Sigma$. Hence $\operatorname{Var}(\operatorname{tr}S) = (m_4 - (\operatorname{tr}\Sigma)^2)/T$.
+\end{proof}
+
+So the risk depends on the distribution only through three numbers: $m_4$, $\operatorname{tr}(\Sigma^2)$ and $(\operatorname{tr}\Sigma)^2$. Under normality $m_4$ is itself a function of the other two, which is why Section~4 needed only $\operatorname{tr}S$ and $\operatorname{tr}(S^2)$. Without normality, $m_4$ carries the information about the tails, and it has to be estimated separately.
+
+\subsection{Unbiased estimates of the three moments}
+
+The idea is simple. A product of two quantities from the \emph{same} day estimates a fourth moment, while a product of quantities from two \emph{different} days factors into a product of second moments, because the days are independent. Define
+\[
+  \hat M = \frac{1}{T}\sum_{t=1}^T \|x_t\|^4, \qquad
+  \hat U_2 = \frac{1}{T(T-1)}\sum_{t \ne u}(x_t'x_u)^2, \qquad
+  \hat U_3 = \frac{1}{T(T-1)}\sum_{t \ne u}\|x_t\|^2\,\|x_u\|^2,
+\]
+where $\sum_{t \ne u}$ runs over all $T(T-1)$ ordered pairs of distinct days. $\hat U_2$ and $\hat U_3$ are U-statistics: averages of a kernel over all pairs of distinct observations.
+
+\begin{proposition}\label{prop:df-unbiased}
+Under (A1)--(A3), and for $T \ge 2$,
+\[
+  \mathbb{E}\hat M = m_4, \qquad \mathbb{E}\hat U_2 = \operatorname{tr}(\Sigma^2), \qquad \mathbb{E}\hat U_3 = (\operatorname{tr}\Sigma)^2 .
+\]
+\end{proposition}
+
+\begin{proof}
+$\hat M$ is a sample mean of the identically distributed variables $\|x_t\|^4$, so $\mathbb{E}\hat M = m_4$.
+
+For $\hat U_2$, fix a pair $t \ne u$. Since $(x_t'x_u)^2 = x_t'x_u\,x_u'x_t$ is a scalar, it equals its own trace, and the cyclic property of the trace gives $(x_t'x_u)^2 = \operatorname{tr}(x_tx_t'\,x_ux_u') = \operatorname{tr}(y_t y_u)$. By independence of days $t$ and $u$, $\mathbb{E}[y_t y_u] = \mathbb{E}[y_t]\,\mathbb{E}[y_u] = \Sigma\Sigma$, so
+\[
+  \mathbb{E}(x_t'x_u)^2 = \operatorname{tr}\left(\mathbb{E}[y_t y_u]\right) = \operatorname{tr}(\Sigma^2).
+\]
+Every one of the $T(T-1)$ terms in $\hat U_2$ has this expectation, so $\mathbb{E}\hat U_2 = \operatorname{tr}(\Sigma^2)$.
+
+For $\hat U_3$, again fix $t \ne u$. By independence, $\mathbb{E}\big[\|x_t\|^2\|x_u\|^2\big] = \mathbb{E}\|x_t\|^2\cdot\mathbb{E}\|x_u\|^2 = (\operatorname{tr}\Sigma)^2$, and averaging over pairs gives $\mathbb{E}\hat U_3 = (\operatorname{tr}\Sigma)^2$.
+
+All expectations are finite by (A3), since $(x_t'x_u)^2 \le \|x_t\|^2\|x_u\|^2$ and $\mathbb{E}\|x_t\|^2 \le (m_4)^{1/2}$.
+\end{proof}
+
+The double sums need not be computed pair by pair. Summing over \emph{all} pairs, including $t = u$,
+\[
+  \sum_{t,u}(x_t'x_u)^2 = \sum_{t,u}\operatorname{tr}(y_t y_u) = \operatorname{tr}\Big(\big(\textstyle\sum_t y_t\big)^2\Big) = T^2\operatorname{tr}(S^2),
+  \qquad
+  \sum_{t,u}\|x_t\|^2\|x_u\|^2 = T^2(\operatorname{tr}S)^2 .
+\]
+The $t = u$ terms contribute $\sum_t\|x_t\|^4 = T\hat M$ in both cases. Removing them,
+\[
+  \hat U_2 = \frac{T\operatorname{tr}(S^2) - \hat M}{T - 1}, \qquad
+  \hat U_3 = \frac{T(\operatorname{tr}S)^2 - \hat M}{T - 1}.
+\]
+
+\begin{corollary}\label{cor:df-VC}
+Under (A1)--(A3), the statistics
+\[
+  \hat V = \frac{\hat M - \hat U_2}{T}, \qquad \hat C = \frac{\hat M - \hat U_3}{NT}
+\]
+satisfy $\mathbb{E}\hat V = V$ and $\mathbb{E}\hat C = C$. Equivalently,
+\begin{align*}
+  \hat V &= \frac{\hat M - \operatorname{tr}(S^2)}{T - 1} = \frac{1}{T(T-1)}\sum_{t=1}^T \|y_t - S\|^2, \\
+  \hat C &= \frac{\hat M - (\operatorname{tr}S)^2}{N(T-1)} = \frac{1}{NT(T-1)}\sum_{t=1}^T \left(\|x_t\|^2 - \operatorname{tr}S\right)^2 .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+Unbiasedness follows from Lemma~\ref{lem:df-moments}, Proposition~\ref{prop:df-unbiased} and linearity of expectation. For the first alternative forms, substitute the expressions for $\hat U_2$ and $\hat U_3$ above: for example, $T(T-1)\hat V = (T-1)\hat M - T\operatorname{tr}(S^2) + \hat M = T(\hat M - \operatorname{tr}(S^2))$. For the second forms, expand the squares and use $\sum_t y_t = TS$ and $\sum_t \|x_t\|^2 = T\operatorname{tr}S$:
+\[
+  \sum_t \|y_t - S\|^2 = \sum_t \|x_t\|^4 - 2\sum_t \operatorname{tr}(y_t S) + T\operatorname{tr}(S^2) = T\left(\hat M - \operatorname{tr}(S^2)\right),
+\]
+using $\|y_t\|^2 = \|x_t\|^4$, and in the same way $\sum_t (\|x_t\|^2 - \operatorname{tr}S)^2 = T(\hat M - (\operatorname{tr}S)^2)$.
+\end{proof}
+
+The second forms explain what the estimates measure. Each entry $s_{ij}$ is the average of the daily values $y_{t,ij} = x_{ti}x_{tj}$, so $\operatorname{Var}(s_{ij}) = \operatorname{Var}(y_{t,ij})/T$. The usual sample variance of the daily values, with divisor $T-1$, is unbiased for $\operatorname{Var}(y_{t,ij})$; dividing it by $T$ and summing over $(i,j)$ gives exactly $\hat V$. In the same way, $\hat C$ is the sample variance of the daily squared lengths $\|x_t\|^2$, divided by $NT$.
+
+\subsection{The SURE and its minimizer}
+
+\begin{theorem}[Distribution-free SURE]\label{thm:df-sure}
+Under (A1)--(A3), for every fixed $\alpha$,
+\[
+  \mathrm{SURE}(\alpha) = \alpha^2\|F - S\|^2 + (1 - 2\alpha)\hat V + 2\alpha\hat C
+\]
+satisfies $\mathbb{E}[\mathrm{SURE}(\alpha)] = R(\alpha)$. If $\|F - S\| > 0$, it is minimized over $\alpha \in \mathbb{R}$ at
+\[
+  \hat\alpha = \frac{\hat V - \hat C}{\|F - S\|^2},
+\]
+and $\hat\alpha \ge 0$. Over $\alpha \in [0,1]$ the minimizer is $\min(\hat\alpha, 1)$.
+\end{theorem}
+
+\begin{proof}
+$\mathrm{SURE}(\alpha)$ is linear in $\|F - S\|^2$, $\hat V$ and $\hat C$, whose expectations are $D$, $V$ and $C$ by definition and Corollary~\ref{cor:df-VC}. Taking expectations and comparing with Lemma~\ref{lem:df-risk} gives $\mathbb{E}[\mathrm{SURE}(\alpha)] = R(\alpha)$.
+
+$\mathrm{SURE}(\alpha)$ is a quadratic in $\alpha$ with leading coefficient $\|F - S\|^2 > 0$, and its derivative $2\alpha\|F - S\|^2 - 2\hat V + 2\hat C$ vanishes at $\hat\alpha$. Since the quadratic is convex, its minimizer over $[0,1]$ is $\hat\alpha$ projected onto $[0,1]$.
+
+To see $\hat\alpha \ge 0$, note that for any symmetric $N \times N$ matrix $A$, the Cauchy--Schwarz inequality applied to $\operatorname{tr}A = \sum_{i,j}a_{ij}\delta_{ij}$ gives $(\operatorname{tr}A)^2 \le \|A\|^2\,\|I\|^2 = N\|A\|^2$. Taking $A = y_t - S$, whose trace is $\|x_t\|^2 - \operatorname{tr}S$, and summing over $t$ shows, by the second forms in Corollary~\ref{cor:df-VC}, that $\hat C \le \hat V$. Hence the projection never has to raise $\hat\alpha$ to $0$.
+\end{proof}
+
+Two cautions. First, unbiasedness holds for the risk curve at each fixed $\alpha$, not for its minimizer: $\hat\alpha$ is a ratio of random quantities and is not an unbiased estimate of the oracle $\alpha^* = (V - C)/D$. Second, (A3) is what makes $\mathrm{SURE}(\alpha)$ unbiased; for $\mathrm{SURE}(\alpha)$ also to have finite variance, $\hat M$ must have finite variance, which requires $\mathbb{E}\|x_t\|^8 < \infty$. With heavy tails the estimate stays unbiased but becomes noisy.
+
+\paragraph{Check.}
+As in Section~4, if $N = 1$ then $F = S$ and the risk cannot depend on $\alpha$. Indeed, for $N = 1$ the formulas give $\hat C = \hat V$ and $\|F - S\| = 0$, so $\mathrm{SURE}(\alpha) = \hat V$ for every $\alpha$.
+
+\subsection{Relation to the Ledoit--Wolf intensity}
+
+\citet{ledoit2004} shrink toward the same target $\nu I$, with the same $S$ (mean zero, divisor $T$). Their intensity on the target is $\hat\rho_{\mathrm{LW}} = \min(\bar b^2, d^2)/d^2$, where
+\[
+  \bar b^2 = \frac{1}{T^2}\sum_{t=1}^T \|x_t x_t' - S\|^2, \qquad d^2 = \|S - \nu I\|^2 .
+\]
+(\citeauthor{ledoit2004} scale the Frobenius norm by $1/N$; the scale cancels in the ratio.)
+
+\begin{proposition}\label{prop:df-lw}
+Before the cap at $1$, the Ledoit--Wolf intensity is
+\[
+  \frac{\bar b^2}{d^2} = \frac{\frac{T-1}{T}\hat V}{\|F - S\|^2} = \frac{\hat V - \hat V/T}{\|F - S\|^2},
+  \qquad\text{while}\qquad
+  \hat\alpha = \frac{\hat V - \hat C}{\|F - S\|^2}.
+\]
+\end{proposition}
+
+\begin{proof}
+The denominators agree because $d^2 = \|S - \nu I\|^2 = \|F - S\|^2$. For the numerator, Corollary~\ref{cor:df-VC} gives $\sum_t \|y_t - S\|^2 = T(T-1)\hat V$, so $\bar b^2 = T(T-1)\hat V/T^2 = \frac{T-1}{T}\hat V$.
+\end{proof}
+
+So the two intensities have the same denominator and the same leading term $\hat V$ in the numerator. They differ in exactly one place: the correction subtracted from $\hat V$. SURE subtracts $\hat C$, the unbiased estimate of the covariance between the target and $S$; Ledoit--Wolf subtracts $\hat V/T$ instead, which comes from dividing by $T$ where an unbiased variance estimate divides by $T-1$. Put differently, Ledoit--Wolf is SURE with $\hat C$ dropped and $\hat V$ multiplied by $(T-1)/T$. The same divisor appears in the Ledoit--Wolf proof above: with the known mean $m_i = 0$, the estimate there satisfies $\sum_{i,j}p_{ij} = T\bar b^2$, so Ledoit and Wolf estimate $\operatorname{Var}(s_{ij})$ by $p_{ij}/T$, while the unbiased estimate is $p_{ij}/(T-1)$.
+
+It follows that Ledoit--Wolf shrinks less than SURE exactly when $\hat V/T > \hat C$. Both corrections are small next to $\hat V$ when $T$ and $N$ are both large: $\hat V/T$ is a fraction $1/T$ of $\hat V$, and under normality, for example, $C/V = 2\operatorname{tr}(\Sigma^2)/\big(N[(\operatorname{tr}\Sigma)^2 + \operatorname{tr}(\Sigma^2)]\big) \le 1/N$. In that regime the two intensities nearly agree. When $T$ is small relative to $N$, the factor $(T-1)/T$ dominates and Ledoit--Wolf shrinks noticeably less than SURE.
+
+\begin{remark}
+The population intensity in \citet{ledoit2004} is $\beta^2/\delta^2$ with $\beta^2 = \mathbb{E}\|S - \Sigma\|^2 = V$ and $\delta^2 = \mathbb{E}\|S - \mu I\|^2$, where $\mu = \operatorname{tr}(\Sigma)/N$ is a fixed number. This is the optimal intensity for the fixed target $\mu I$. The estimator actually uses the random target $\nu I$, for which the optimum is $\alpha^* = (V - C)/D$. The two differ: expanding the squares, $D = \mathbb{E}\|S - \nu I\|^2 = \delta^2 - \operatorname{Var}(\operatorname{tr}S)/N = \delta^2 - C$, so $\alpha^* = (\beta^2 - C)/(\delta^2 - C)$. The term $C$ is the price of estimating the target from the same data.
+\end{remark}
+
+\subsection{When does shrinkage reduce risk?}
+
+\begin{proposition}\label{prop:df-reduce}
+Assume (A1)--(A3) and $D > 0$, and let $\alpha^* = (V - C)/D$. Then $\alpha^* \ge 0$, and
+\[
+  R(\alpha) < R(0) \iff 0 < \alpha < 2\alpha^* .
+\]
+\end{proposition}
+
+\begin{proof}
+By Lemma~\ref{lem:df-risk}, $R(0) = V$, so
+\[
+  R(\alpha) - R(0) = \alpha^2 D - 2\alpha(V - C) = \alpha D\,(\alpha - 2\alpha^*).
+\]
+Since $D > 0$, this is negative exactly when $\alpha$ and $\alpha - 2\alpha^*$ have opposite signs, which, given $\alpha^* \ge 0$, means $0 < \alpha < 2\alpha^*$.
+
+For $\alpha^* \ge 0$ we need $V \ge C$. Write $A = y_t - \Sigma$. Because $s_{ij}$ averages i.i.d.\ copies of $y_{t,ij}$, $V = \sum_{i,j}\operatorname{Var}(y_{t,ij})/T = \mathbb{E}\|A\|^2/T$, and by Lemma~\ref{lem:df-moments} $C = \operatorname{Var}(\|x_t\|^2)/(NT) = \mathbb{E}(\operatorname{tr}A)^2/(NT)$. The inequality $(\operatorname{tr}A)^2 \le N\|A\|^2$ from the proof of Theorem~\ref{thm:df-sure} gives $C \le V$.
+\end{proof}
+
+The interval $(0, 2\alpha^*)$ is defined by the true risk, so it involves the unknown $\alpha^*$, not $\hat\alpha$. Its sample analogue is an exact statement about the estimated curve: $\mathrm{SURE}(\alpha) < \mathrm{SURE}(0)$ if and only if $0 < \alpha < 2\hat\alpha$. Because $\mathrm{SURE}$ is unbiased, this is an unbiased picture of the risk curve, but it does not guarantee that a particular $\hat\alpha$ falls inside $(0, 2\alpha^*)$. When $\alpha^* > 1/2$, every $\alpha \in (0, 1]$ reduces the risk.
+
+\subsection{Comparison with the Gaussian SURE of Section~4}
+
+Under normality, writing $\Sigma$ in its eigenbasis, $\|x_t\|^2 = \sum_i \lambda_i z_i^2$ with $z_i$ independent standard normals, and $\mathbb{E}z_i^4 = 3$ gives
+\[
+  m_4 = (\operatorname{tr}\Sigma)^2 + 2\operatorname{tr}(\Sigma^2).
+\]
+Substituting into Lemma~\ref{lem:df-moments},
+\[
+  V = \frac{(\operatorname{tr}\Sigma)^2 + \operatorname{tr}(\Sigma^2)}{T}, \qquad C = \frac{2\operatorname{tr}(\Sigma^2)}{NT},
+\]
+which are exactly the two terms found with Stein's lemma in Section~4. So under normality both SUREs are unbiased for the same risk curve. They differ in what they use. The Gaussian SURE is a function of $\operatorname{tr}S$ and $\operatorname{tr}(S^2)$ alone, and it relies on the Gaussian relation above to recover $m_4$ from them. The distribution-free SURE also uses $\hat M$, the average fourth power of the daily vector lengths, which $S$ cannot see; this is how it detects heavy tails.
+
+Each choice has a cost. Under normality $S$ is a complete sufficient statistic, so by the Lehmann--Scheff\'e theorem the Gaussian estimates, which are unbiased functions of $S$, have the smallest variance among unbiased estimates; the distribution-free estimates pay for their generality with some extra variance. Outside the normal family the Gaussian estimates are biased. When the tails are heavier than normal, $m_4$ exceeds $(\operatorname{tr}\Sigma)^2 + 2\operatorname{tr}(\Sigma^2)$, so the Gaussian SURE underestimates $V$ and $C$, and its $\hat\alpha$ shrinks too little.
+
+\paragraph{Numerical check.}
+A Monte Carlo check with $N = 5$, $T = 12$, a non-identity $\Sigma$ and $4\times10^6$ replications confirms Proposition~\ref{prop:df-unbiased}, Corollary~\ref{cor:df-VC} and Theorem~\ref{thm:df-sure} for both Gaussian data and multivariate $t$ data with $10$ degrees of freedom (rescaled to covariance $\Sigma$): every estimate is within two Monte Carlo standard errors of its target, and the average of $\mathrm{SURE}(\alpha)$ matches the true risk at $\alpha \in \{0, 0.25, 0.5, 0.75, 1\}$. Under Gaussian data the two estimates of $V$ are both unbiased, with standard deviations $7.10$ (distribution-free) and $6.43$ (Gaussian). Under $t_{10}$ data the true value is $V = 21.99$; the distribution-free estimate averages $22.01$, while the Gaussian estimate of Section~4 averages $16.65$, about $24\%$ too small. The identity in Proposition~\ref{prop:df-lw} holds to machine precision.

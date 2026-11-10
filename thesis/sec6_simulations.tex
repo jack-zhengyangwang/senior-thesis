@@ -1,0 +1,155 @@
+\section{Simulations}\label{sec:sims}
+
+This section compares, by Monte Carlo, three data-driven choices of the shrinkage intensity $\alpha$: the Ledoit--Wolf intensity, the Gaussian SURE of Section 4, and the distribution-free SURE of Section 5. The main question is what happens when the data are not normal. The Gaussian SURE relies on normal fourth moments, so under heavy tails it should misjudge $\operatorname{Var}(s_{ij})$, while the distribution-free SURE estimates the fourth moments directly and should stay unbiased. All code is in \texttt{sims/sim\_section6.py}; it uses a fixed seed and runs in under half a minute.
+% TODO(Jack): add RBLW/OAS (Chen et al. 2010) and Touloumis (2015) if citation approved
+
+\subsection{Setup}
+
+Each replication draws $x_1, \dots, x_T \in \mathbb{R}^N$ i.i.d.\ with mean zero and covariance $\Sigma$, forms $S = \frac{1}{T}\sum_{t=1}^T x_t x_t'$ and the target $F = \nu I$ with $\nu = \operatorname{tr}(S)/N$, and evaluates $\hat\Sigma = \alpha F + (1-\alpha) S$ under the loss $\|\hat\Sigma - \Sigma\|^2$ (squared Frobenius norm).
+
+\paragraph{Distributions.} We use three data models, all with $\operatorname{Cov}(x_t) = \Sigma$:
+\begin{itemize}
+  \item Gaussian: $x_t \sim N(0, \Sigma)$.
+  \item Multivariate $t$ with $\kappa$ degrees of freedom: $x_t = \sqrt{w_t}\, z_t$ with $z_t \sim N(0, \Sigma)$ and $w_t = (\kappa - 2)/\chi^2_\kappa$ independent of $z_t$, so that $\mathbb{E} w_t = 1$. We use $\kappa = 10$ and, as a stress test, $\kappa = 5$.
+\end{itemize}
+For the $t$ model, $\mathbb{E}\|x_t\|^4 = \frac{\kappa - 2}{\kappa - 4}\left[ (\operatorname{tr}\Sigma)^2 + 2\operatorname{tr}(\Sigma^2) \right]$, which is $4/3$ times the Gaussian value for $\kappa = 10$ and $3$ times for $\kappa = 5$. Fourth moments are finite in both cases, so the estimators of Section 5 are unbiased. Eighth moments, however, are finite only for $\kappa > 8$. With $\kappa = 5$ the estimates $\hat V$ and $\hat C$, and the loss itself, have infinite variance, so Monte Carlo averages for $t_5$ converge slowly and should be read as qualitative.
+
+\paragraph{Covariance matrices.} Two choices of $\Sigma$:
+\begin{itemize}
+  \item Single-factor: $\Sigma = \sigma_m^2 \beta\beta' + D$ with $\sigma_m^2 = 1$, betas equally spaced on $[0.5, 1.5]$, and residual variances equally spaced on $[0.5, 1.5]$. This is the market model of \citet{sharpe1963}, a natural structure for stock returns. One large eigenvalue makes $\Sigma$ far from $\nu I$, so the optimal intensity is small.
+  \item Spread eigenvalues: $\Sigma = \operatorname{diag}(\lambda_1, \dots, \lambda_N)$ with $\lambda_i$ equally spaced on $[1, 10]$. Both data models are elliptical and the loss is invariant under rotations, so taking $\Sigma$ diagonal loses no generality. Here $\Sigma$ is much closer to $\nu I$ and the optimal intensity is large.
+\end{itemize}
+
+\paragraph{Design.} We cross $N \in \{10, 50, 100\}$ with $T \in \{20, 60, 250\}$, giving $N/T$ from $0.04$ to $5$, for each of the $2 \times 3$ combinations of $\Sigma$ and distribution. Each of the 54 cells uses 5{,}000 replications.
+
+\subsection{Estimators}
+
+All three intensities share the denominator $\|F - S\|^2 = \operatorname{tr}(S^2) - (\operatorname{tr}S)^2/N$.
+
+\begin{enumerate}
+  \item \emph{Ledoit--Wolf.} For the target $\nu I$ the intensity of \citet{ledoit2004} can be written as $\hat\alpha_{\mathrm{LW}} = \frac{T-1}{T}\, \hat V / \|F - S\|^2$, with $\hat V$ the distribution-free estimate below. The code checks this identity numerically against the original formula.
+  \item \emph{Gaussian SURE (Section 4).}
+  \[
+    \hat V_G = \frac{T(\operatorname{tr}S)^2 + (T-2)\operatorname{tr}(S^2)}{(T+2)(T-1)}, \quad
+    \hat b = \frac{T\left[ T\operatorname{tr}(S^2) - (\operatorname{tr}S)^2 \right]}{(T+2)(T-1)}, \quad
+    \hat\alpha_G = \frac{\hat V_G - 2\hat b/(NT)}{\|F - S\|^2}.
+  \]
+  \item \emph{Distribution-free SURE (Section 5).} With $\hat M = \frac{1}{T}\sum_t \|x_t\|^4$, $\hat U_2 = \frac{1}{T(T-1)}\sum_{t \ne u}(x_t'x_u)^2$ and $\hat U_3 = \frac{1}{T(T-1)}\sum_{t \ne u}\|x_t\|^2\|x_u\|^2$,
+  \[
+    \hat V = \frac{\hat M - \hat U_2}{T}, \qquad
+    \hat C = \frac{\hat M - \hat U_3}{NT}, \qquad
+    \hat\alpha_{\mathrm{DF}} = \frac{\hat V - \hat C}{\|F - S\|^2}.
+  \]
+  \item \emph{Oracle.} $\alpha^* = (V - C)/D$, where $V = \sum_{i,j}\operatorname{Var}(s_{ij}) = (\mathbb{E}\|x_t\|^4 - \operatorname{tr}(\Sigma^2))/T$, $C = \sum_{i,j}\operatorname{Cov}(f_{ij}, s_{ij}) = (\mathbb{E}\|x_t\|^4 - (\operatorname{tr}\Sigma)^2)/(NT)$ and $D = \mathbb{E}\|F - S\|^2$, all in closed form. It minimizes the true risk $R(\alpha) = \alpha^2 D + (1 - 2\alpha)V + 2\alpha C$ over constant $\alpha$ and uses the unknown $\Sigma$.
+\end{enumerate}
+The sample covariance $S$ ($\alpha = 0$) is the baseline. Every intensity is clipped to $[0, 1]$; across all cells, clipping was needed for 0.4\% of LW draws, 0.1\% of Gaussian SURE draws and 1.1\% of distribution-free SURE draws.
+
+The two SURE versions agree in expectation under normality: there $\mathbb{E}\|x_t\|^4 = (\operatorname{tr}\Sigma)^2 + 2\operatorname{tr}(\Sigma^2)$, and the targets of $\hat V$ and $\hat C$ reduce to those of $\hat V_G$ and $2\hat b/(NT)$. They differ only in how the fourth moment is estimated.
+
+We report the percentage relative improvement in average loss over $S$,
+\[
+  \mathrm{PRIAL} = 100 \times \frac{\mathbb{E}\|S - \Sigma\|^2 - \mathbb{E}\|\hat\Sigma - \Sigma\|^2}{\mathbb{E}\|S - \Sigma\|^2},
+\]
+with expectations replaced by Monte Carlo averages, together with the mean and standard deviation of each $\hat\alpha$.
+
+\subsection{Results}
+
+\paragraph{The risk curve.} Figure~\ref{fig:sec6-curves} averages the two SURE curves over 20{,}000 replications for the single-factor $\Sigma$ with $N = 100$ and $T = 20$, and compares them with the true risk $R(\alpha)$. Under normality both averages lie on $R(\alpha)$, within 0.2\% of $R(0)$ at every $\alpha$. Under $t_{10}$ the distribution-free curve is still on target (within 1.2\%), while the Gaussian curve is shifted down by up to 26\% of $R(0)$. Its value at $\alpha = 0$ estimates $V = \mathbb{E}\|S - \Sigma\|^2$, and the Gaussian formula misses the extra kurtosis. Its minimizer therefore sits to the left of $\alpha^*$.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{sec6_sure_curves}
+  \caption{Mean SURE$(\alpha)$ over 20{,}000 replications against the true risk $R(\alpha)$. Single-factor $\Sigma$, $N = 100$, $T = 20$. Dotted vertical line: $\alpha^*$.}
+  \label{fig:sec6-curves}
+\end{figure}
+
+\paragraph{Bias of the variance terms.} Table~\ref{tab:sec6-bias} makes the source of the shift explicit. Under normality all four estimates are unbiased. Under $t_{10}$, $\hat V_G$ captures only about three quarters of $V$, and $2\hat b/(NT)$ captures between 15\% and 56\% of $C$. The covariance term is hit hardest: with heavy tails $C$ contains a $(\operatorname{tr}\Sigma)^2$ term that the Gaussian formula $2\operatorname{tr}(\Sigma^2)/(NT)$ does not have. Under $t_5$ the Gaussian estimates fall to about a third of $V$. The distribution-free estimates are within 3\% of the truth under $t_{10}$. Under $t_5$ their Monte Carlo means range from 0.76 to 0.94. This does not contradict unbiasedness, which needs only fourth moments: with infinite eighth moments the sample mean of $\hat V$ is dominated by rare large draws and settles slowly.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Monte Carlo mean of each estimate divided by its true value ($1$ means unbiased). $N = 100$, $T = 20$, 5{,}000 replications.}
+  \label{tab:sec6-bias}
+  \begin{tabular}{llcccc}
+    \toprule
+    $\Sigma$ & data & $\hat V_G / V$ & $\hat V / V$ & $\frac{2\hat b/(NT)}{C}$ & $\hat C / C$ \\
+    \midrule
+    single-factor & Gaussian & 1.00 & 1.00 & 0.99 & 0.99 \\
+                  & $t_{10}$ & 0.74 & 1.02 & 0.56 & 1.03 \\
+                  & $t_5$    & 0.34 & 0.80 & 0.20 & 0.76 \\
+    \midrule
+    spread        & Gaussian & 1.00 & 1.00 & 1.00 & 1.00 \\
+                  & $t_{10}$ & 0.77 & 1.00 & 0.15 & 0.99 \\
+                  & $t_5$    & 0.39 & 0.94 & 0.09 & 0.90 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Shrinkage intensities and PRIAL.} Table~\ref{tab:sec6-main} reports results for $N = 100$; Figures~\ref{fig:sec6-prial} and~\ref{fig:sec6-alpha} cover all 54 cells, and the full table is in \texttt{sims/out/sec6\_results.txt}.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \caption{Mean shrinkage intensity and PRIAL (\%) for $N = 100$, 5{,}000 replications per row. G = Gaussian SURE, DF = distribution-free SURE.}
+  \label{tab:sec6-main}
+  \begin{tabular}{llrcccccrrrr}
+    \toprule
+    & & & & \multicolumn{3}{c}{mean $\hat\alpha$} & & \multicolumn{4}{c}{PRIAL (\%)} \\
+    \cmidrule(lr){5-7} \cmidrule(lr){9-12}
+    $\Sigma$ & data & $T$ & $\alpha^*$ & LW & G & DF & & LW & G & DF & Oracle \\
+    \midrule
+    single-factor & Gaussian & 20  & 0.192 & 0.208 & 0.218 & 0.218 & & 9.3  & 9.4  & 8.7  & 18.6 \\
+                  &          & 60  & 0.073 & 0.076 & 0.077 & 0.077 & & 2.6  & 2.6  & 2.5  & 7.0 \\
+                  &          & 250 & 0.019 & 0.019 & 0.019 & 0.019 & & 1.0  & 1.0  & 1.0  & 2.2 \\
+                  & $t_{10}$ & 20  & 0.250 & 0.251 & 0.214 & 0.263 & & 22.4 & 15.2 & 22.1 & 24.9 \\
+                  &          & 60  & 0.100 & 0.099 & 0.077 & 0.101 & & 9.0  & 5.4  & 8.9  & 10.3 \\
+                  &          & 250 & 0.026 & 0.026 & 0.019 & 0.026 & & 3.1  & 1.6  & 3.1  & 3.1 \\
+                  & $t_5$    & 20  & 0.448 & 0.318 & 0.209 & 0.333 & & 47.1 & 19.2 & 47.1 & 37.7 \\
+                  &          & 60  & 0.213 & 0.151 & 0.076 & 0.152 & & 37.6 & 7.6  & 37.7 & 19.9 \\
+                  &          & 250 & 0.061 & 0.047 & 0.019 & 0.046 & & 21.7 & 1.8  & 21.6 & 5.1 \\
+    \midrule
+    spread        & Gaussian & 20  & 0.957 & 0.910 & 0.957 & 0.957 & & 95.4 & 95.6 & 95.6 & 95.7 \\
+                  &          & 60  & 0.881 & 0.867 & 0.881 & 0.881 & & 88.0 & 88.0 & 88.0 & 88.1 \\
+                  &          & 250 & 0.640 & 0.638 & 0.640 & 0.640 & & 64.0 & 64.0 & 64.0 & 64.0 \\
+                  & $t_{10}$ & 20  & 0.967 & 0.921 & 0.779 & 0.966 & & 96.2 & 90.1 & 96.4 & 96.5 \\
+                  &          & 60  & 0.908 & 0.894 & 0.702 & 0.907 & & 90.5 & 84.5 & 90.5 & 90.6 \\
+                  &          & 250 & 0.703 & 0.702 & 0.531 & 0.703 & & 70.3 & 65.4 & 70.3 & 70.2 \\
+                  & $t_5$    & 20  & 0.985 & 0.930 & 0.607 & 0.974 & & 97.6 & 59.6 & 97.8 & 97.8 \\
+                  &          & 60  & 0.957 & 0.924 & 0.505 & 0.935 & & 94.3 & 57.8 & 94.3 & 94.2 \\
+                  &          & 250 & 0.842 & 0.799 & 0.364 & 0.798 & & 84.7 & 41.3 & 84.7 & 83.9 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{sec6_prial}
+  \caption{PRIAL over $S$ against $N/T$ (log scale) for all 54 cells. Points with the same $N$ are joined; within each joined set, $T = 250, 60, 20$ from left to right. Top row: single-factor $\Sigma$; bottom row: spread eigenvalues.}
+  \label{fig:sec6-prial}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{sec6_alpha}
+  \caption{Mean of $\hat\alpha - \alpha^*$ (markers) with $\pm 1$ standard deviation of $\hat\alpha$ (bars), single-factor $\Sigma$, all $(N, T)$. Points with the same $N$ are joined; markers are offset horizontally for readability.}
+  \label{fig:sec6-alpha}
+\end{figure}
+
+Four findings stand out.
+
+\begin{enumerate}
+  \item \emph{Under normality the three methods are nearly identical.} PRIALs differ by at most $1.0$ point. The Gaussian SURE is slightly better for the single-factor $\Sigma$ at $T = 20$ ($9.4$ against $8.7$), because its $\hat\alpha$ has a smaller standard deviation ($0.054$ against $0.065$ at $N = 100$). Using a known fourth-moment formula is more efficient when that formula is correct, and estimating the fourth moment from the data costs a little variance.
+  \item \emph{Under $t_{10}$ the Gaussian SURE under-shrinks, and the distribution-free SURE does not.} The mean $\hat\alpha_G$ is $10$--$28\%$ below $\alpha^*$ for the single-factor $\Sigma$ and $16$--$25\%$ below for the spread $\Sigma$, while the mean $\hat\alpha_{\mathrm{DF}}$ stays within $0.025$ of $\alpha^*$. The distribution-free SURE gains $1.5$--$6.9$ PRIAL points over the Gaussian SURE. In the single-factor case this is a large share of the available gain ($22.1$ against $15.2$ at $N = 100$, $T = 20$).
+  \item \emph{Under $t_5$ the gap becomes severe.} The Gaussian SURE gives up roughly half the available improvement (e.g.\ $41.3$ against $84.7$ for the spread $\Sigma$ at $T = 250$). LW and the distribution-free SURE also shrink less than $\alpha^*$ on average here, but they still beat the Gaussian SURE everywhere. In the single-factor case they even beat the fixed oracle $\alpha^*$ by a wide margin. This is possible because $\alpha^*$ is optimal only among constants. A data-dependent $\hat\alpha$ can shrink more in samples where $S$ happens to be far from $\Sigma$, and with very heavy tails a few extreme days produce exactly such samples. Given the infinite eighth moments, these $t_5$ figures carry more Monte Carlo noise than the others.
+  \item \emph{LW and the distribution-free SURE are almost indistinguishable in this design.} Their PRIALs differ by at most $0.9$ points in every cell. LW shrinks visibly less only when $N/T$ is large and $\alpha^*$ is near one (mean $0.910$ against $0.957$ for the spread $\Sigma$, Gaussian, $N = 100$, $T = 20$), and even there the PRIAL difference is $0.2$ points. The two differ by the factor $(T-1)/T$ and the term $\hat C$, both of order $1/T$, and $T \ge 20$ in every cell.
+\end{enumerate}
+
+A further point applies to all three methods. In the single-factor case the oracle PRIAL at $T = 20$ is about twice that of any data-driven method. Here $\alpha^*$ is small and $D$ is large, so the noise in $\hat\alpha$ (standard deviation about $0.06$, against $\alpha^* \approx 0.19$) costs a large share of the possible gain. All three methods also over-shrink slightly on average (about $0.22$ against $0.19$). This matches the remark in Section 5: SURE is unbiased for the risk curve, but its minimizer, a ratio of estimates, is not unbiased for $\alpha^*$.
+
+\subsection{Discussion}
+
+The simulations support the theory of Sections 4 and 5. Under normality both SURE versions estimate the risk curve without bias and pick nearly the same intensity. When the data have fatter tails than the normal, the Gaussian SURE underestimates $\operatorname{Var}(s_{ij})$ and, even more, $\operatorname{Cov}(f_{ij}, s_{ij})$. It shrinks too little and loses a sizeable part of the improvement over $S$. The distribution-free SURE remains on target. Daily stock returns have excess kurtosis, so for the application that motivates this thesis the distribution-free version is the safer choice. The price is a small loss of efficiency when the data really are normal.
+
+The comparison with Ledoit--Wolf is less decisive. For $T \ge 20$ the LW intensity is within a fraction of a PRIAL point of the distribution-free SURE, in line with the identity $\hat\alpha_{\mathrm{LW}} = \frac{T-1}{T}\hat V/\|F - S\|^2$: LW already uses the same distribution-free estimate of $\operatorname{Var}(s_{ij})$ and differs from SURE only by terms of order $1/T$. The advantage of the SURE derivation over LW is therefore mostly conceptual in this range of $T$, since it gives an exactly unbiased risk estimate rather than an asymptotic one. A practical advantage should appear only at much smaller $T$. Earlier runs with an AR(1) covariance and $N = 100$ suggest that at $T = 6$ LW shrinks too little, which would make the $(T-1)/T$ factor matter, but this design does not test that.
+
+Two limitations apply. First, the mean is known to be zero throughout; with a demeaned sample covariance the identities used here hold only approximately. Second, all data models are elliptical. Skewed or non-elliptical returns, and returns that are dependent over time, are not covered.
