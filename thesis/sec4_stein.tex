@@ -131,4 +131,4 @@ The difficulty is Step 3. Off the diagonal,
 \]
 where $s_{0i}$ is the sample covariance between asset $i$ and the market and $s_{00}^2$ is the sample variance of the market. Because the sample market variance appears in the denominator, $f_{ij}$ is a ratio of random quantities, and so are its derivatives. The expectations produced by Stein's lemma are therefore expectations of ratios. Unlike the scaled-identity case, where every term collapsed to the two scalars $(\operatorname{tr}\Sigma)^2$ and $\operatorname{tr}(\Sigma^2)$, they do not reduce to a closed form in the population moments, so there is no expression to replace by an unbiased estimate.
 
-The direct Stein argument is therefore stuck at this point for the single-index target: Steps 1 and 2 hold, but completing the SURE requires an alternative method for the cross term.
+The direct Stein argument is therefore stuck at this point for the single-index target: Steps 1 and 2 hold and the variance term is estimated as before, but completing the SURE requires an alternative method for the covariance term $\sum_{i \neq j}\operatorname{Cov}(f_{ij}, s_{ij})$.
