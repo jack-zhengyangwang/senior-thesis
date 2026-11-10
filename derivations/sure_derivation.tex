@@ -1,0 +1,96 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+\title{From the LW Frobenius Risk to SURE Form}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+\section*{Setup}
+The shrinkage estimator is $\hat\Sigma = \alpha F + (1-\alpha)S$, so entrywise
+$\hat\sigma_{ij} = \alpha f_{ij} + (1-\alpha)s_{ij}$. The risk is the expected squared Frobenius norm,
+\[
+R(\alpha) = \mathbb{E}\|\hat\Sigma-\Sigma\|_F^2 = \sum_{i,j}\mathbb{E}(\hat\sigma_{ij}-\sigma_{ij})^2 .
+\]
+The only assumption needed is that $S$ is unbiased: $\mathbb{E}\,s_{ij}=\sigma_{ij}$.
+Everything below is done for one fixed entry $(i,j)$ and summed at the end.
+
+\section*{Step 1: Lemma 1 (add and subtract $S$)}
+Write
+\[
+\hat\sigma_{ij}-\sigma_{ij} = (\hat\sigma_{ij}-s_{ij}) + (s_{ij}-\sigma_{ij}).
+\]
+Squaring,
+\[
+(\hat\sigma_{ij}-\sigma_{ij})^2 = (\hat\sigma_{ij}-s_{ij})^2 + (s_{ij}-\sigma_{ij})^2 + 2(\hat\sigma_{ij}-s_{ij})(s_{ij}-\sigma_{ij}).
+\]
+Take expectations of the three pieces.
+
+\textbf{Piece 1.} Keep $\mathbb{E}(\hat\sigma_{ij}-s_{ij})^2$ as it is.
+
+\textbf{Piece 2.} Since $\mathbb{E}\,s_{ij}=\sigma_{ij}$,
+$\;\mathbb{E}(s_{ij}-\sigma_{ij})^2 = \operatorname{Var}(s_{ij})$.
+
+\textbf{Piece 3 (cross term).} Split it:
+\[
+\mathbb{E}\big[(\hat\sigma_{ij}-s_{ij})(s_{ij}-\sigma_{ij})\big]
+= \mathbb{E}\big[\hat\sigma_{ij}(s_{ij}-\sigma_{ij})\big] - \mathbb{E}\big[s_{ij}(s_{ij}-\sigma_{ij})\big].
+\]
+Because $s_{ij}-\sigma_{ij}$ has mean zero, for any random variable $Y$ we have
+$\mathbb{E}[Y(s_{ij}-\sigma_{ij})] = \operatorname{Cov}(Y,s_{ij})$. Taking $Y=\hat\sigma_{ij}$ and then $Y=s_{ij}$:
+\[
+\mathbb{E}\big[(\hat\sigma_{ij}-s_{ij})(s_{ij}-\sigma_{ij})\big]
+= \operatorname{Cov}(\hat\sigma_{ij},s_{ij}) - \operatorname{Var}(s_{ij}).
+\]
+
+\textbf{Combine.}
+\begin{align*}
+\mathbb{E}(\hat\sigma_{ij}-\sigma_{ij})^2
+&= \mathbb{E}(\hat\sigma_{ij}-s_{ij})^2 + \operatorname{Var}(s_{ij})
+   + 2\operatorname{Cov}(\hat\sigma_{ij},s_{ij}) - 2\operatorname{Var}(s_{ij}) \\
+&= \mathbb{E}(\hat\sigma_{ij}-s_{ij})^2 - \operatorname{Var}(s_{ij})
+   + 2\operatorname{Cov}(\hat\sigma_{ij},s_{ij}).
+\end{align*}
+Summing over $i,j$ gives Lemma 1 of Yi and Zou (2013):
+\[
+\boxed{\;\mathbb{E}\|\hat\Sigma-\Sigma\|_F^2
+= \mathbb{E}\|\hat\Sigma-S\|_F^2 - \sum_{i,j}\operatorname{Var}(s_{ij})
++ 2\sum_{i,j}\operatorname{Cov}(\hat\sigma_{ij},s_{ij})\;}
+\]
+This holds for \emph{any} estimator $\hat\Sigma$; no normality is used.
+
+\section*{Step 2: Plug in the LW shrinker}
+
+\textbf{First term.} $\hat\sigma_{ij}-s_{ij} = \alpha f_{ij} + (1-\alpha)s_{ij} - s_{ij} = \alpha(f_{ij}-s_{ij})$, so
+\[
+\mathbb{E}\|\hat\Sigma-S\|_F^2 = \alpha^2\,\mathbb{E}\|F-S\|_F^2 .
+\]
+
+\textbf{Covariance term.} Covariance is linear in each argument, so
+\[
+\operatorname{Cov}(\hat\sigma_{ij},s_{ij})
+= \operatorname{Cov}\big(\alpha f_{ij}+(1-\alpha)s_{ij},\,s_{ij}\big)
+= \alpha\operatorname{Cov}(f_{ij},s_{ij}) + (1-\alpha)\operatorname{Var}(s_{ij}).
+\]
+
+\textbf{Collect the variance terms.} The $\operatorname{Var}$ terms are
+$-\operatorname{Var}(s_{ij}) + 2(1-\alpha)\operatorname{Var}(s_{ij}) = (1-2\alpha)\operatorname{Var}(s_{ij})$.
+
+\section*{Result}
+\[
+R(\alpha) =
+\underbrace{\alpha^2\,\mathbb{E}\|F-S\|_F^2}_{\text{computable from data}}
++ (1-2\alpha)\underbrace{\sum_{i,j}\operatorname{Var}(s_{ij})}_{\text{estimated by Lemma 2}}
++ 2\alpha\underbrace{\sum_{i,j}\operatorname{Cov}(f_{ij},s_{ij})}_{\text{unknown}} .
+\]
+
+\section*{Remark: why $\mathbb{E}\,s_{ij}=\sigma_{ij}$ matters}
+If $S$ divides by $T$ and the mean is estimated, then $\mathbb{E}\,S = \tfrac{T-1}{T}\Sigma \neq \Sigma$.
+Piece 2 then becomes $\operatorname{Var}(s_{ij}) + b_{ij}^2$ with bias $b_{ij}=\mathbb{E}s_{ij}-\sigma_{ij}$,
+and the cross term picks up an extra $-2\,b_{ij}\,\mathbb{E}(\hat\sigma_{ij}-s_{ij})$ term.
+Using $S$ with divisor $T-1$ (or a known zero mean) avoids this.
+
+\end{document}

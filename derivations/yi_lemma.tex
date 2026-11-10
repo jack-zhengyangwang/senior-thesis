@@ -1,0 +1,215 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+
+\newtheorem{lemma}{Lemma}
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\tr}{\operatorname{tr}}
+
+\title{Yi's Lemma and a SURE Form for Ledoit--Wolf Shrinkage}
+\author{Jack Wang}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2em}
+
+\section{Motivation}
+
+Under the guidance of Professor Rosenman, the first stage of this project
+studied shrinkage in the classical normal-means problem. For the linear rule
+$\hat\theta = (1-\lambda)X$, the correction term is $g(X) = -\lambda X$, and
+most terms in Stein's unbiased risk estimate (SURE) simplify directly, so the
+MSE-optimal amount of shrinkage can be displayed graphically across different
+dimensions and directions. The James--Stein rule
+$\hat\theta = \bigl(1 - c/\|X\|^2\bigr)X$ admits the same kind of
+simplification and can be plotted in the same way.
+
+The central question of the thesis is whether the same program carries over
+to covariance estimation: can the Ledoit--Wolf (LW) shrinkage estimator be
+written in SURE form? This note derives the key identity, due to Yi and Zou,
+and applies it to the LW estimator.
+
+\section{Setup}
+
+Let $\Sigma = (\sigma_{ij})$ be the true $p\times p$ covariance matrix, $S =
+(s_{ij})$ the sample covariance matrix, and $\hat\Sigma = (\hat\sigma_{ij})$
+any estimator of $\Sigma$. The loss is the squared Frobenius norm. Recall that
+for a matrix $A$,
+\[
+\|A\|_F = \Bigl(\sum_{i,j} |a_{ij}|^2\Bigr)^{1/2}
+        = \sqrt{\tr(A^{H}A)}
+        = \Bigl(\sum_k \sigma_k^2(A)\Bigr)^{1/2},
+\]
+where $A^H$ is the conjugate transpose and $\sigma_k(A)$ are the singular
+values of $A$. Because the loss is the \emph{squared} norm, the square root
+drops out and the risk decomposes entrywise:
+\[
+R(\hat\Sigma) = \E\|\hat\Sigma - \Sigma\|_F^2
+              = \sum_{i,j} \E(\hat\sigma_{ij} - \sigma_{ij})^2 .
+\]
+
+\textbf{Assumption.} The sample covariance is unbiased, $\E S = \Sigma$, that is,
+$\E s_{ij} = \sigma_{ij}$ for every $(i,j)$.
+
+\begin{remark}
+This holds, for example, when the daily observations $x_1,\dots,x_T \in
+\mathbb{R}^p$ (one vector per day $t$) are i.i.d.\ across days with mean zero
+and $S = \frac1T\sum_t x_t x_t^\top$, since then
+$\E s_{ij} = \frac1T\sum_t \E[x_{ti}x_{tj}] = \sigma_{ij}$. If the mean is
+estimated, the demeaned estimator needs the divisor $T-1$ instead of $T$ to
+stay unbiased. No distributional assumption (such as normality) is needed.
+\end{remark}
+
+\section{Yi's lemma}
+
+\begin{lemma}[Yi and Zou]\label{lem:yi}
+Under the assumption $\E S = \Sigma$, for any estimator $\hat\Sigma$,
+\[
+\E\|\hat\Sigma - \Sigma\|_F^2
+= \E\|\hat\Sigma - S\|_F^2
+  - \sum_{i,j}\Var(s_{ij})
+  + 2\sum_{i,j}\Cov(\hat\sigma_{ij}, s_{ij}).
+\]
+\end{lemma}
+
+\begin{proof}
+Fix an entry $(i,j)$ and write $\hat\sigma$, $s$, $\sigma$ for
+$\hat\sigma_{ij}$, $s_{ij}$, $\sigma_{ij}$. Adding and subtracting $s$,
+\[
+\hat\sigma - \sigma = (\hat\sigma - s) + (s - \sigma),
+\]
+so
+\[
+(\hat\sigma - \sigma)^2
+= (\hat\sigma - s)^2 + (s - \sigma)^2 + 2(\hat\sigma - s)(s - \sigma).
+\]
+We take expectations term by term.
+
+\emph{First term.} $\E(\hat\sigma - s)^2$ is kept as it is.
+
+\emph{Second term.} Expanding and using $\E s = \sigma$,
+\[
+\E(s-\sigma)^2 = \E s^2 - 2\sigma\,\E s + \sigma^2
+               = \E s^2 - \sigma^2
+               = \E s^2 - (\E s)^2
+               = \Var(s).
+\]
+
+\emph{Cross term.} Distributing,
+\[
+\E\bigl[(\hat\sigma - s)(s - \sigma)\bigr]
+= \E\bigl[\hat\sigma(s-\sigma)\bigr] - \E\bigl[s(s-\sigma)\bigr].
+\]
+For any random variables $A$ and $B$,
+\[
+\Cov(A,B) = \E\bigl[(A - \E A)(B - \E B)\bigr]
+          = \E\bigl[A(B - \E B)\bigr] - \E A\cdot\E\bigl[B - \E B\bigr]
+          = \E\bigl[A(B - \E B)\bigr],
+\]
+since $\E[B - \E B] = 0$. Taking $B = s$, so that $\E B = \sigma$, and first
+$A = \hat\sigma$ and then $A = s$, gives
+\[
+\E\bigl[\hat\sigma(s-\sigma)\bigr] = \Cov(\hat\sigma, s),
+\qquad
+\E\bigl[s(s-\sigma)\bigr] = \Cov(s,s) = \Var(s).
+\]
+Hence the cross term equals $\Cov(\hat\sigma, s) - \Var(s)$.
+
+\emph{Combining.}
+\[
+\E(\hat\sigma - \sigma)^2
+= \E(\hat\sigma - s)^2 + \Var(s) + 2\Cov(\hat\sigma, s) - 2\Var(s)
+= \E(\hat\sigma - s)^2 - \Var(s) + 2\Cov(\hat\sigma, s).
+\]
+Summing over all $(i,j)$, and noting that
+$\sum_{i,j}\E(\hat\sigma_{ij} - s_{ij})^2 = \E\|\hat\Sigma - S\|_F^2$,
+yields the lemma.
+\end{proof}
+
+\begin{remark}
+The identity holds for \emph{every} estimator $\hat\Sigma$, whatever function
+of the data it is. All three terms are summed over $(i,j)$; the first sum
+simply recombines into a Frobenius norm. The estimator enters only through
+$\E\|\hat\Sigma - S\|_F^2$ and the covariance term
+$\sum_{i,j}\Cov(\hat\sigma_{ij}, s_{ij})$, which plays the role of the
+divergence term in Stein's identity.
+\end{remark}
+
+\section{Application to Ledoit--Wolf shrinkage}
+
+The LW estimator shrinks $S$ toward a target $F = (f_{ij})$:
+\[
+\hat\Sigma = \delta F + (1-\delta) S,
+\qquad\text{so}\qquad
+\hat\sigma_{ij} = \delta f_{ij} + (1-\delta)s_{ij}.
+\]
+We evaluate the three terms of Lemma~\ref{lem:yi}.
+
+\emph{First term.} Since $\hat\Sigma - S = \delta(F - S)$,
+\[
+\E\|\hat\Sigma - S\|_F^2 = \delta^2\,\E\|F - S\|_F^2 .
+\]
+
+\emph{Covariance term.} By bilinearity of covariance,
+\[
+\Cov(\hat\sigma_{ij}, s_{ij})
+= \delta\Cov(f_{ij}, s_{ij}) + (1-\delta)\Var(s_{ij}).
+\]
+
+\emph{Combining.} The variance terms collect as
+$-\Var(s_{ij}) + 2(1-\delta)\Var(s_{ij}) = (1-2\delta)\Var(s_{ij})$, so the
+risk as a function of the shrinkage intensity is
+\[
+R(\delta) = \delta^2\,\E\|F - S\|_F^2
+          + (1-2\delta)\sum_{i,j}\Var(s_{ij})
+          + 2\delta\sum_{i,j}\Cov(f_{ij}, s_{ij}).
+\]
+
+\section{The SURE form}
+
+A SURE is any statistic, computable from the data, whose expectation equals
+the risk: $\E[\mathrm{SURE}(\delta)] = R(\delta)$. Each term of $R(\delta)$
+therefore has to be replaced by an unbiased, computable counterpart. The
+first term needs no work, since $\|F - S\|_F^2$ is computed directly from $S$
+and $F$ and is unbiased for $\E\|F - S\|_F^2$. Given unbiased estimators
+$\widehat{\Var}(s_{ij})$ and $\widehat{\Cov}(f_{ij}, s_{ij})$,
+\[
+\mathrm{SURE}(\delta) = \delta^2\,\|F - S\|_F^2
+  + (1-2\delta)\sum_{i,j}\widehat{\Var}(s_{ij})
+  + 2\delta\sum_{i,j}\widehat{\Cov}(f_{ij}, s_{ij}).
+\]
+
+\section{Open step: estimating the variance and covariance terms}
+
+The remaining difficulty is to construct $\widehat{\Var}(s_{ij})$ and
+$\widehat{\Cov}(f_{ij}, s_{ij})$ in the matrix setting. Everything above rests
+on two assumptions: the observations have mean zero, and they are i.i.d.\
+across days. Both are essential to the derivation, but neither is fully
+realistic for financial returns.
+
+\begin{remark}[Variance term]
+With mean-zero i.i.d.\ data, $s_{ij} = \frac1T\sum_t y_t$ is an average of the
+i.i.d.\ products $y_t = x_{ti}x_{tj}$, so
+$\Var(s_{ij}) = \frac1T\Var(y_t)$. The usual unbiased sample variance of the
+$y_t$, divided by $T$, gives an unbiased estimator:
+\[
+\widehat{\Var}(s_{ij}) = \frac{1}{T(T-1)}\sum_{t=1}^T \bigl(x_{ti}x_{tj} - s_{ij}\bigr)^2 .
+\]
+\end{remark}
+
+\begin{remark}[Covariance term]
+If the target $F$ is fixed (does not depend on the data), then
+$\Cov(f_{ij}, s_{ij}) = 0$ and this term vanishes. For data-dependent targets,
+such as the scaled identity $F = \nu I$ with $\nu = \tr(S)/p$, the term is
+nonzero and must be estimated; this is the step still to be worked out for
+general targets.
+\end{remark}
+
+\end{document}

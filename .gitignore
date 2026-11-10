@@ -1,0 +1,17 @@
+.DS_Store
+# LaTeX build junk
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
+# Python
+__pycache__/
+*.pyc
+.venv/
+# third-party papers (copyrighted PDFs, keep out of a pushed repo)
+papers/
