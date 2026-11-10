@@ -5,15 +5,19 @@ Checks, for N=5, T=12, a non-identity Sigma, Gaussian and multivariate t_10 data
   E[V_hat] = V = sum_ij Var(s_ij),  E[C_hat] = C = sum_ij Cov(f_ij, s_ij)
   E[SURE(alpha)] = R(alpha)  (closed form and direct Monte Carlo of the loss)
   LW intensity (before capping) = (T-1)/T * V_hat / ||F - S||^2   (exact identity)
-It also reports the Section 4 Gaussian estimate of V under both distributions.
+It also reports the Section 4 Gaussian estimates under both distributions, compares
+the Gaussian and distribution-free alpha_hat, and checks the Rao-Blackwell identity
+  E[M_hat | S] = T((tr S)^2 + 2 tr(S^2)) / (T + 2)   (Gaussian data)
+through E[(M_hat - that) * h(S)] = 0 for several test functions h.
 
-Run: python sims/check_sec5.py   (seed fixed, about 10 s)
+Run: python sims/check_sec5.py   (REPS=4_000_000 by default, about 30 s; env REPS, SEED override)
 """
+import os
+
 import numpy as np
 
 N, T = 5, 12
-import os
-REPS = int(os.environ.get("REPS", 400_000))
+REPS = int(os.environ.get("REPS", 4_000_000))
 CHUNK = 50_000
 DF = 10
 ALPHAS = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -69,7 +73,17 @@ def stats(X):
                     np.abs(C - (M - trS**2) / (N * (T - 1))).max())
     # Section 4 Gaussian estimate of V
     Vg = (T * trS**2 + (T - 2) * trS2) / ((T + 2) * (T - 1))
-    out = dict(M=M, U2=U2, U3=U3, V=V, C=C, D=FS2, Vgauss=Vg)
+    bg = T * (T * trS2 - trS**2) / ((T + 2) * (T - 1))
+    out = dict(M=M, U2=U2, U3=U3, V=V, C=C, D=FS2, Vgauss=Vg, Cgauss=2 * bg / (N * T))
+    out["aDF"] = (V - C) / FS2
+    out["aG"] = (Vg - 2 * bg / (N * T)) / FS2
+    out["aG_lt_aDF"] = (out["aG"] < out["aDF"]).astype(float)
+    # Rao-Blackwell check: E[(M - Mrb) h(S)] = 0 under Gaussian data
+    res = M - T * (trS**2 + 2 * trS2) / (T + 2)
+    for name, h in [("1", np.ones_like(trS)), ("trS", trS), ("trS2", trS2),
+                    ("(trS)^2", trS**2), ("s11*s22", S[:, 0, 0] * S[:, 1, 1]),
+                    ("s12^2", S[:, 0, 1] ** 2)]:
+        out[f"RB_{name}"] = res * h / h.mean()
     out.update({f"SURE{a}": sure[a] for a in ALPHAS})
     out.update({f"loss{a}": loss[a] for a in ALPHAS})
     return out, lw_gap, short_gap
@@ -93,7 +107,13 @@ for dist in ["gauss", "t10"]:
         print(f"{k:>12} {tr[k]:10.4f} {mean[k]:10.4f} {se[k]:8.4f} {z:6.2f}")
     print(f"{'Vgauss(S4)':>12} {tr['V']:10.4f} {mean['Vgauss']:10.4f} {se['Vgauss']:8.4f} "
           f"{(mean['Vgauss'] - tr['V']) / se['Vgauss']:6.2f}")
+    print(f"{'Cgauss(S4)':>12} {tr['C']:10.4f} {mean['Cgauss']:10.4f} {se['Cgauss']:8.4f} "
+          f"{(mean['Cgauss'] - tr['C']) / se['Cgauss']:6.2f}")
     print(f"  sd(V_hat) = {acc['V'].std():.4f}   sd(Vgauss) = {acc['Vgauss'].std():.4f}")
+    print(f"  mean alpha_hat: DF {mean['aDF']:.4f}  Gaussian {mean['aG']:.4f};"
+          f"  P(alpha_G < alpha_DF) = {mean['aG_lt_aDF']:.4f}")
+    print("  Rao-Blackwell check, z-scores of E[(M - T((trS)^2+2trS^2)/(T+2)) h(S)]:")
+    print("   " + "  ".join(f"{k[3:]}: {mean[k] / se[k]:6.2f}" for k in mean if k.startswith("RB_")))
     print(f"{'alpha':>6} {'R closed':>10} {'MC loss':>10} {'s.e.':>7} {'E SURE':>10} {'s.e.':>7}")
     for a in ALPHAS:
         print(f"{a:6.2f} {tr['R'][a]:10.4f} {mean[f'loss{a}']:10.4f} {se[f'loss{a}']:7.4f} "

@@ -1,4 +1,4 @@
-\section{Stein's Approach to Ledoit--Wolf Shrinkage}
+\section{Stein's Approach to Ledoit--Wolf Shrinkage}\label{sec:stein}
 
 This section derives an unbiased risk estimate for Ledoit--Wolf shrinkage by following Stein's argument step by step.
 
@@ -127,4 +127,4 @@ For the single-index target $F = s_{00}^2\hat\beta\hat\beta' + \hat\Delta$, Step
 \[
   \mathbb{E}\left[ f_{ij}(s_{ij} - \sigma_{ij}) \right] = \frac{1}{T}\sum_{t=1}^T \sum_{k=1}^N \sigma_{ik}\, \mathbb{E}\left[ x_{tj}\, \frac{\partial f_{ij}}{\partial x_{tk}} \right].
 \]
-Now $\partial f_{ij}/\partial x_{tk}$ is a nonlinear function of the data, so the right-hand side is no longer a polynomial in $\Sigma$, and Step 3 has no exact counterpart. Replacing $\sigma_{ik}$ by $s_{ik}$ gives a natural estimate, but it is biased because $s_{ik}$ is correlated with the derivative, so the resulting risk estimate is only approximately unbiased. The Stein route is therefore exact for linear targets such as $\nu I$ and approximate for the single-index target, the same boundary met by the distribution-free route of Section~3.2.
+Now $\partial f_{ij}/\partial x_{tk}$ is a nonlinear function of the data, so the right-hand side is no longer a polynomial in $\Sigma$, and Step 3 has no exact counterpart. Replacing $\sigma_{ik}$ by $s_{ik}$ gives a natural estimate, but it is biased because $s_{ik}$ is correlated with the derivative, so the resulting risk estimate is only approximately unbiased. The Stein route is therefore exact for linear targets such as $\nu I$ and approximate for the single-index target, the same boundary met by the distribution-free route of Section~\ref{sec:df-sure}.
