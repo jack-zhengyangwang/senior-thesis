@@ -42,6 +42,10 @@ Since $\hat\Sigma - \Sigma = (S - \Sigma) + g(S)$,
   R(\alpha) = \mathbb{E}\|\hat\Sigma - \Sigma\|^2
   = \mathbb{E}\|S - \Sigma\|^2 + \alpha^2\, \mathbb{E}\|F - S\|^2 + 2\alpha \sum_{i,j=1}^N \mathbb{E}\left[ (f_{ij} - s_{ij})(s_{ij} - \sigma_{ij}) \right].
 \]
+Since $\mathbb{E}\|S - \Sigma\|^2 = \sum_{i,j}\operatorname{Var}(s_{ij})$ and $\mathbb{E}[(f_{ij} - s_{ij})(s_{ij} - \sigma_{ij})] = \operatorname{Cov}(f_{ij}, s_{ij}) - \operatorname{Var}(s_{ij})$, this is exactly Yi's lemma (Lemma~\ref{lem:yi}) applied to Ledoit--Wolf shrinkage:
+\[
+  R(\alpha) = (1 - 2\alpha)\sum_{i,j}\operatorname{Var}(s_{ij}) + \alpha^2\,\mathbb{E}\|F - S\|^2 + 2\alpha\sum_{i,j}\operatorname{Cov}(f_{ij}, s_{ij}).
+\]
 Two terms contain unknowns. The first, $\mathbb{E}\|S - \Sigma\|^2 = \sum_{i,j}\operatorname{Var}(s_{ij})$, is the analogue of $p\sigma^2$, but unlike $p\sigma^2$ it is not known. The last is the cross term, which contains $\sigma_{ij}$.
 
 \subsection{Step 2: Stein's lemma for the cross term}

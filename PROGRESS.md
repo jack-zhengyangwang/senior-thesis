@@ -152,3 +152,11 @@ Needs Jack's OK: citing Chen et al. (RBLW/OAS) and Touloumis in §6.
 - Possible §4 remark: variance term could be estimated directly by 4th moments (Yi/§5 route) and Stein used only on the target term f_ij (hybrid; unbiased only under normality).
 - Walkthrough paused at §4.4 Step 2.4 (lem:stein-cov); next: apply with h = f_ij (skipping h = s_ij), then Step 3.
 - Port §5/§6 into Overleaf (preamble envs, 3 figure uploads, §4 label + ref fix, Chen et al. citation decision, §3 ledoit2004→2003).
+
+## 2026-11-10 (late): restructure agreed with Jack
+- §1–4 stay (draft up to the risk function). §4 shows Stein's route reaches Yi's risk; §4.6 says only Cov(f_ij,s_ij) is stuck for single-index.
+- NEW §5 = list of methods for Var(s_ij) and Cov(f_ij,s_ij), each labelled [literature] or [proposed]. Yi & Zou Lemma 2 = normal-theory UMVUE for Var (no target cov term needed: tapering weights fixed). LW 2003 = asymptotic ρ̂.
+- NEW §6 = empirical comparison (fold old §5/§6 drafts + single_index_directions sims into §5/§6).
+- NEW §7 = relaxing assumptions (Wishart = normality, gives Stein–Haff tools; elliptical, unknown mean, time dependence).
+- Citations: anything in Overleaf biblio.bib (ledoit2003/2004, stein1981, sharpe1963, yi2013). Others pending Jack's skim (papers being pulled to papers/).
+- Overleaf fixed today: Yi identity LaTeX, §2.1 contradiction + d/p + norms, intro target T→F single-index, §2.2 p/δ→N/α, §3.1 cite 2003 + mean-zero S, §4.3 explicit link to Yi's lemma. "Stein (1956)" still plain text (not in bib).

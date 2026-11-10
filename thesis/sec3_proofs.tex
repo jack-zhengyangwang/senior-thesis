@@ -2,14 +2,14 @@
 
 \subsection{Ledoit--Wolf Shrinkage Estimator}
 
-This subsection follows \cite{ledoit2004}.
+This subsection follows \citet{ledoit2003}.
 
 \paragraph{Setup.}
 Let $X$ be the $N \times T$ matrix of returns on $N$ stocks over $T$ periods. We assume: (i) returns are i.i.d.\ over time; (ii) $N$ is fixed while $T \to \infty$; (iii) returns have finite fourth moments, $\mathbb{E}|x_{it}x_{jt}x_{kt}x_{lt}| < \infty$ for all $i,j,k,l$ and $t$, which controls how fat the tails are; (iv) $\Phi \neq \Sigma$, so the target is biased; and (v) $\sigma_{00}^2 > 0$, so the market return varies over time. The sample covariance matrix is
 \[
-  S = \frac{1}{T} X \left( I - \frac{1}{T}\mathbf{1}\mathbf{1}' \right) X',
+  S = \frac{1}{T} X X',
 \]
-which is rank-deficient whenever $N > T-1$.
+where, as in the rest of this thesis, the mean return is taken to be known and equal to zero, so that $\mathbb{E}S = \Sigma$. It is rank-deficient whenever $N > T$.
 
 \paragraph{Shrinkage target.}
 Under Sharpe's single-index model $x_{it} = \alpha_i + \beta_i x_{0t} + \varepsilon_{it}$, where $x_{0t}$ is the market return and $\operatorname{Var}(\varepsilon_{it}) = \delta_{ii}$, the covariance matrix is $\Phi = \sigma_{00}^2 \beta\beta' + \Delta$ with $\Delta = \operatorname{diag}(\delta_{ii})$. Its regression estimate $F = s_{00}^2\,\hat\beta\hat\beta' + \hat\Delta$ is the target. $F$ has few parameters but is biased, while $S$ is asymptotically unbiased but noisy; shrinkage trades off the two.
