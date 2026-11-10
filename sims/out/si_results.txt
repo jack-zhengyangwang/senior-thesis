@@ -50,49 +50,71 @@ gauss  10   30 | stein     14.8138   0.2662 |  15.7561   1.064  0.645 |    7.4  
 gauss  10   30 | delta     14.8138   0.2662 |  15.0631   1.017  0.645 |   10.4   0.02   11.4   -0.9 |  0.645  0.683(0.182)   8.3 | z_bias  +1.11
 gauss  10   30 | boot      14.8138   0.2662 |  14.6815   0.991  0.645 |   10.0   0.08   11.3   -1.3 |  0.645  0.709(0.222)  19.4 | z_bias  -0.35
 gauss  10   30 | stale      6.9504   0.2472 |   7.0566   1.015  0.512 |   25.4   0.09   27.1   -1.7 |  0.512  0.596(0.224)   8.6 | z_bias  +0.48
-      oracle PRIAL by target: nuI 15.6 (a*=0.164) | in-sample SI 11.4 (a*=0.645) | stale SI 27.1 (a*=0.512)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 15.6 (a*=0.164) | in-sample SI 11.4 (a*=0.645) | #5 stale 27.1 (a*=0.512) | hybrid 27.0 (a*=0.776) | pooled S (2T days, a=0) 49.7 | pooled SI (2T days) 54.0 (a*=0.473)
       max_alpha |mean SURE_d - R|/R(0): stein 0.077, delta 0.014, boot 0.027, stale 0.005
 gauss  10  120 | stein      3.9132   0.1113 |   3.7679   0.963  0.308 |    3.3   0.04    5.6   -2.3 |  0.308  0.315(0.180)   1.8 | z_bias  -1.37
 gauss  10  120 | delta      3.9132   0.1113 |   3.7170   0.950  0.308 |    4.4   0.02    5.6   -1.2 |  0.308  0.334(0.096)   0.0 | z_bias  -1.85
 gauss  10  120 | boot       3.9132   0.1113 |   3.6988   0.945  0.308 |    4.1   0.06    5.6   -1.5 |  0.308  0.336(0.128)   0.2 | z_bias  -0.30
 gauss  10  120 | stale      1.9533   0.1089 |   1.7548   0.898  0.410 |   18.6   0.06   21.8   -3.2 |  0.410  0.459(0.159)   0.8 | z_bias  -1.88
-      oracle PRIAL by target: nuI 4.9 (a*=0.049) | in-sample SI 5.6 (a*=0.308) | stale SI 21.8 (a*=0.410)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 4.8 (a*=0.049) | in-sample SI 5.6 (a*=0.308) | #5 stale 21.8 (a*=0.410) | hybrid 16.5 (a*=0.465) | pooled S (2T days, a=0) 49.8 | pooled SI (2T days) 51.5 (a*=0.181)
       max_alpha |mean SURE_d - R|/R(0): stein 0.024, delta 0.005, boot 0.006, stale 0.004
 gauss  30   30 | stein    145.1371   2.4843 | 151.7960   1.046  0.648 |    8.7   0.04   12.8   -4.1 |  0.648  0.488(0.330)  25.9 | z_bias  +3.22
 gauss  30   30 | delta    145.1371   2.4843 | 145.0847   1.000  0.648 |   12.4   0.01   12.8   -0.4 |  0.648  0.660(0.122)   0.3 | z_bias  -0.02
 gauss  30   30 | boot     145.1371   2.4843 | 142.4370   0.981  0.648 |   11.9   0.05   12.9   -1.0 |  0.648  0.706(0.194)  11.8 | z_bias  -0.11
 gauss  30   30 | stale     69.6034   2.3373 |  68.6672   0.987  0.515 |   29.8   0.05   30.3   -0.5 |  0.515  0.564(0.154)   0.7 | z_bias  -0.45
-      oracle PRIAL by target: nuI 15.1 (a*=0.153) | in-sample SI 12.8 (a*=0.648) | stale SI 30.3 (a*=0.515)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 15.1 (a*=0.153) | in-sample SI 12.8 (a*=0.648) | #5 stale 30.3 (a*=0.515) | hybrid 30.3 (a*=0.779) | pooled S (2T days, a=0) 50.2 | pooled SI (2T days) 55.0 (a*=0.475)
       max_alpha |mean SURE_d - R|/R(0): stein 0.078, delta 0.009, boot 0.023, stale 0.004
 gauss  30  120 | stein     36.1839   1.0355 |  36.1298   0.999  0.311 |    4.6   0.03    6.4   -1.7 |  0.311  0.305(0.150)   0.7 | z_bias  -0.05
 gauss  30  120 | delta     36.1839   1.0355 |  35.7019   0.987  0.311 |    5.8   0.01    6.4   -0.6 |  0.311  0.320(0.060)   0.0 | z_bias  -0.49
 gauss  30  120 | boot      36.1839   1.0355 |  35.5285   0.982  0.311 |    5.6   0.05    6.5   -0.9 |  0.311  0.325(0.094)   0.1 | z_bias  -0.11
 gauss  30  120 | stale     17.5010   1.0145 |  17.0427   0.974  0.410 |   23.0   0.03   24.3   -1.4 |  0.410  0.429(0.092)   0.0 | z_bias  -0.47
-      oracle PRIAL by target: nuI 4.3 (a*=0.043) | in-sample SI 6.4 (a*=0.311) | stale SI 24.3 (a*=0.410)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 4.3 (a*=0.043) | in-sample SI 6.4 (a*=0.311) | #5 stale 24.3 (a*=0.410) | hybrid 18.5 (a*=0.465) | pooled S (2T days, a=0) 50.3 | pooled SI (2T days) 52.2 (a*=0.183)
       max_alpha |mean SURE_d - R|/R(0): stein 0.021, delta 0.004, boot 0.010, stale 0.005
 t10    10   30 | stein     21.2243   0.4049 |  16.3079   0.768  0.714 |   10.1   0.03   11.8   -1.7 |  0.714  0.758(0.295)  48.0 | z_bias -14.27
 t10    10   30 | delta     21.2243   0.4049 |  21.5181   1.014  0.714 |   11.2   0.02   11.8   -0.6 |  0.714  0.717(0.182)  11.5 | z_bias  +1.05
 t10    10   30 | boot      21.2243   0.4049 |  21.1761   0.998  0.714 |   10.1   0.10   11.3   -1.2 |  0.714  0.741(0.241)  26.9 | z_bias  -0.86
 t10    10   30 | stale     10.5161   0.3523 |  10.5659   1.005  0.533 |   26.6   0.11   27.0   -0.4 |  0.533  0.604(0.234)  10.0 | z_bias  +0.18
-      oracle PRIAL by target: nuI 20.4 (a*=0.216) | in-sample SI 11.8 (a*=0.714) | stale SI 27.0 (a*=0.533)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 20.4 (a*=0.216) | in-sample SI 11.8 (a*=0.714) | #5 stale 27.0 (a*=0.533) | hybrid 27.0 (a*=0.828) | pooled S (2T days, a=0) 50.0 | pooled SI (2T days) 54.6 (a*=0.543)
       max_alpha |mean SURE_d - R|/R(0): stein 0.305, delta 0.027, boot 0.018, stale 0.011
 t10    10  120 | stein      5.4188   0.1475 |   3.7943   0.700  0.375 |   -0.3   0.07    6.3   -6.6 |  0.375  0.674(0.252)  23.7 | z_bias -11.57
 t10    10  120 | delta      5.4188   0.1475 |   5.2693   0.972  0.375 |    5.5   0.02    6.3   -0.9 |  0.375  0.398(0.119)   0.1 | z_bias  -1.14
 t10    10  120 | boot       5.4188   0.1475 |   5.3879   0.994  0.375 |    4.6   0.08    6.1   -1.5 |  0.375  0.405(0.179)   2.5 | z_bias  -3.64
 t10    10  120 | stale      2.7700   0.1405 |   2.6320   0.950  0.448 |   20.1   0.08   22.4   -2.4 |  0.448  0.495(0.181)   2.0 | z_bias  -1.06
-      oracle PRIAL by target: nuI 6.3 (a*=0.066) | in-sample SI 6.3 (a*=0.375) | stale SI 22.4 (a*=0.448)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 6.2 (a*=0.066) | in-sample SI 6.3 (a*=0.375) | #5 stale 22.4 (a*=0.448) | hybrid 17.9 (a*=0.539) | pooled S (2T days, a=0) 50.5 | pooled SI (2T days) 52.5 (a*=0.228)
       max_alpha |mean SURE_d - R|/R(0): stein 0.374, delta 0.010, boot 0.026, stale 0.010
 t10    30   30 | stein    204.5019   3.9701 | 156.5886   0.766  0.717 |   11.8   0.02   13.3   -1.5 |  0.717  0.782(0.264)  45.4 | z_bias -14.09
 t10    30   30 | delta    204.5019   3.9701 | 206.9678   1.012  0.717 |   13.1   0.01   13.3   -0.2 |  0.717  0.705(0.122)   0.8 | z_bias  +0.96
 t10    30   30 | boot     204.5019   3.9701 | 212.7274   1.040  0.717 |   11.8   0.07   12.8   -1.0 |  0.717  0.740(0.213)  18.8 | z_bias  -0.07
 t10    30   30 | stale    102.7196   3.5366 | 102.6851   1.000  0.532 |   30.3   0.06   29.9   +0.4 |  0.532  0.577(0.165)   1.2 | z_bias  -0.01
-      oracle PRIAL by target: nuI 19.7 (a*=0.201) | in-sample SI 13.3 (a*=0.717) | stale SI 29.9 (a*=0.532)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 19.7 (a*=0.201) | in-sample SI 13.3 (a*=0.717) | #5 stale 29.9 (a*=0.532) | hybrid 30.2 (a*=0.829) | pooled S (2T days, a=0) 49.8 | pooled SI (2T days) 55.1 (a*=0.549)
       max_alpha |mean SURE_d - R|/R(0): stein 0.354, delta 0.019, boot 0.006, stale 0.000
 t10    30  120 | stein     48.6610   1.3331 |  36.3262   0.747  0.377 |    0.6   0.06    7.4   -6.7 |  0.377  0.675(0.232)  20.3 | z_bias  -9.72
 t10    30  120 | delta     48.6610   1.3331 |  50.3072   1.034  0.377 |    7.0   0.01    7.4   -0.4 |  0.377  0.385(0.077)   0.0 | z_bias  +1.38
 t10    30  120 | boot      48.6610   1.3331 |  50.5532   1.039  0.377 |    6.4   0.06    7.5   -1.1 |  0.377  0.391(0.138)   1.5 | z_bias  +0.32
 t10    30  120 | stale     23.8377   1.2829 |  25.3099   1.062  0.446 |   24.4   0.03   25.4   -1.0 |  0.446  0.466(0.109)   0.0 | z_bias  +1.23
-      oracle PRIAL by target: nuI 5.5 (a*=0.057) | in-sample SI 7.4 (a*=0.377) | stale SI 25.4 (a*=0.446)
+      oracle PRIAL by target (vs E L(S), current T days): nuI 5.5 (a*=0.057) | in-sample SI 7.4 (a*=0.377) | #5 stale 25.4 (a*=0.446) | hybrid 20.4 (a*=0.536) | pooled S (2T days, a=0) 49.9 | pooled SI (2T days) 52.1 (a*=0.230)
       max_alpha |mean SURE_d - R|/R(0): stein 0.407, delta 0.012, boot 0.031, stale 0.007
 
-runtime 114.4 s
+BENCHMARKS: split one window; design sensitivity; drifting betas (all Gaussian)
+split N=10 T= 30 reps=10000: beta from first T/2 days, S from last T/2: oracle PRIAL vs E L(S_T) = -44.5 (a*=0.502); no shrinkage (S on T/2 days) -97.4
+split N=10 T=120 reps=10000: beta from first T/2 days, S from last T/2: oracle PRIAL vs E L(S_T) = -48.4 (a*=0.484); no shrinkage (S on T/2 days) -100.0
+split N=30 T= 30 reps=10000: beta from first T/2 days, S from last T/2: oracle PRIAL vs E L(S_T) = -39.4 (a*=0.507); no shrinkage (S on T/2 days) -99.9
+split N=30 T=120 reps=10000: beta from first T/2 days, S from last T/2: oracle PRIAL vs E L(S_T) = -43.0 (a*=0.483); no shrinkage (S on T/2 days) -100.4
+design baseline sm2=1 g=0.4       N=30 T= 30 reps=10000: nuI 15.6 (a*=0.155) | in-sample SI 12.9 (a*=0.648) | #5 stale 30.3 (a*=0.514) | hybrid 30.3 (a*=0.777) | pooled S (2T days, a=0) 50.1 | pooled SI (2T days) 54.9 (a*=0.475)
+design baseline sm2=1 g=0.4       N=30 T=120 reps=10000: nuI 4.4 (a*=0.044) | in-sample SI 6.4 (a*=0.311) | #5 stale 24.2 (a*=0.409) | hybrid 18.4 (a*=0.463) | pooled S (2T days, a=0) 49.6 | pooled SI (2T days) 51.5 (a*=0.183)
+design strong market sm2=4 g=0.4  N=30 T= 30 reps=10000: nuI 7.3 (a*=0.078) | in-sample SI 1.7 (a*=0.651) | #5 stale 11.0 (a*=0.486) | hybrid 11.2 (a*=0.902) | pooled S (2T days, a=0) 49.7 | pooled SI (2T days) 50.3 (a*=0.475)
+design strong market sm2=4 g=0.4  N=30 T=120 reps=10000: nuI 1.9 (a*=0.020) | in-sample SI 0.8 (a*=0.307) | #5 stale 10.5 (a*=0.464) | hybrid 8.6 (a*=0.681) | pooled S (2T days, a=0) 49.9 | pooled SI (2T days) 50.2 (a*=0.181)
+design no 2nd factor sm2=1 g=0    N=30 T= 30 reps=10000: nuI 13.4 (a*=0.138) | in-sample SI 16.5 (a*=1.000) | #5 stale 30.5 (a*=0.558) | hybrid 35.3 (a*=1.000) | pooled S (2T days, a=0) 49.8 | pooled SI (2T days) 58.2 (a*=1.000)
+design no 2nd factor sm2=1 g=0    N=30 T=120 reps=10000: nuI 3.8 (a*=0.039) | in-sample SI 16.9 (a*=0.999) | #5 stale 31.8 (a*=0.583) | hybrid 35.5 (a*=0.999) | pooled S (2T days, a=0) 50.4 | pooled SI (2T days) 58.9 (a*=0.999)
+drift N=30 T= 30 tau=0.00 reps=10000: #5 data-driven 30.1, #5 oracle 30.7, hybrid oracle 30.6, pooled S 50.0, pooled SI oracle 54.9, in-sample SI oracle 13.0 | #5 C_off-hat bias z +2.29
+drift N=30 T= 30 tau=0.10 reps=10000: #5 data-driven 27.3, #5 oracle 27.6, hybrid oracle 28.8, pooled S 46.8, pooled SI oracle 51.7, in-sample SI oracle 12.9 | #5 C_off-hat bias z +0.01
+drift N=30 T= 30 tau=0.20 reps=10000: #5 data-driven 22.5, #5 oracle 22.4, hybrid oracle 25.8, pooled S 38.0, pooled SI oracle 43.0, in-sample SI oracle 13.1 | #5 C_off-hat bias z +0.53
+drift N=30 T= 30 tau=0.30 reps=10000: #5 data-driven 16.7, #5 oracle 16.1, hybrid oracle 21.1, pooled S 23.4, pooled SI oracle 28.9, in-sample SI oracle 12.9 | #5 C_off-hat bias z -0.36
+drift N=30 T= 30 tau=0.50 reps=10000: #5 data-driven 9.5, #5 oracle 8.6, hybrid oracle 13.8, pooled S -31.5, pooled SI oracle -22.3, in-sample SI oracle 13.2 | #5 C_off-hat bias z -0.59
+drift N=30 T=120 tau=0.00 reps=10000: #5 data-driven 22.8, #5 oracle 24.2, hybrid oracle 18.4, pooled S 49.7, pooled SI oracle 51.7, in-sample SI oracle 6.4 | #5 C_off-hat bias z +0.25
+drift N=30 T=120 tau=0.10 reps=10000: #5 data-driven 18.2, #5 oracle 19.1, hybrid oracle 16.7, pooled S 38.8, pooled SI oracle 40.8, in-sample SI oracle 6.5 | #5 C_off-hat bias z -1.17
+drift N=30 T=120 tau=0.20 reps=10000: #5 data-driven 10.7, #5 oracle 11.0, hybrid oracle 12.3, pooled S 5.8, pooled SI oracle 7.9, in-sample SI oracle 6.3 | #5 C_off-hat bias z -0.46
+drift N=30 T=120 tau=0.30 reps=10000: #5 data-driven 6.8, #5 oracle 6.8, hybrid oracle 9.1, pooled S -50.6, pooled SI oracle -47.9, in-sample SI oracle 6.4 | #5 C_off-hat bias z -1.15
+drift N=30 T=120 tau=0.50 reps=10000: #5 data-driven 2.7, #5 oracle 2.6, hybrid oracle 4.5, pooled S -251.0, pooled SI oracle -241.0, in-sample SI oracle 6.3 | #5 C_off-hat bias z -1.13
+
+runtime 151.0 s

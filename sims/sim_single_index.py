@@ -73,16 +73,21 @@ plt.rcParams.update({"font.size": 9, "axes.titlesize": 9, "axes.labelsize": 9, "
 
 
 # ------------------------------------------------------------------ model
-def model(N):
-    """Joint covariance J of z = (m, x'), and the asset covariance Sigma = J[1:, 1:]."""
+def factor_parts(N, gl=0.4):
+    """Betas b and residual covariance Psi = diag(d) + g g' (g = +gl / -gl: a second, "industry" factor)."""
     b = np.linspace(0.5, 1.5, N)
     d = np.linspace(0.5, 1.5, N)[::-1]
-    g = 0.4 * np.where(np.arange(N) < N // 2, 1.0, -1.0)     # second factor: +0.4 / -0.4 loadings
-    Psi = np.diag(d) + np.outer(g, g)
+    g = gl * np.where(np.arange(N) < N // 2, 1.0, -1.0)
+    return b, np.diag(d) + np.outer(g, g)
+
+
+def model(N, sm2=SIGMA_M2, gl=0.4):
+    """Joint covariance J of z = (m, x'), and the asset covariance Sigma = J[1:, 1:]."""
+    b, Psi = factor_parts(N, gl)
     J = np.empty((N + 1, N + 1))
-    J[0, 0] = SIGMA_M2
-    J[0, 1:] = J[1:, 0] = SIGMA_M2 * b
-    J[1:, 1:] = SIGMA_M2 * np.outer(b, b) + Psi
+    J[0, 0] = sm2
+    J[0, 1:] = J[1:, 0] = sm2 * b
+    J[1:, 1:] = sm2 * np.outer(b, b) + Psi
     return J
 
 
@@ -171,6 +176,23 @@ def stats_chunk(Z, Zp, Sigma, J):
     out["Coff_delta"] = offsum(dl)
     # direction #5: stale beta
     out["Coff_stale"] = offsum(bt[:, :, None] * bt[:, None, :] * K2)
+
+    # benchmarks that use the earlier window differently (all judged against Sigma of the current window)
+    Sp = np.matmul(Xp.transpose(0, 2, 1), Xp) / T
+    S2 = (S + Sp) / 2                                                # pooled S on all 2T days
+    a2 = (a + np.einsum("rt,rti->ri", mp, Xp) / T) / 2
+    B2 = (B + np.mean(mp ** 2, axis=1)) / 2
+    F2 = a2[:, :, None] * a2[:, None, :] / B2[:, None, None]       # single index on all 2T days
+    F2[:, eye] = np.diagonal(S2, axis1=1, axis2=2)
+    S2mS = S2 - Sigma
+    out["A_pool"] = np.sum(S2mS ** 2, axis=(1, 2))
+    out["D_pool"] = np.sum((F2 - S2) ** 2, axis=(1, 2))
+    out["Cr_pool"] = np.sum(S2mS * (F2 - S2), axis=(1, 2))
+    b2 = a2 / B2[:, None]                                            # hybrid: beta from 2T days, S and s00 current
+    Fh = Bb * b2[:, :, None] * b2[:, None, :]
+    Fh[:, eye] = sdiag
+    out["D_hy"] = np.sum((Fh - S) ** 2, axis=(1, 2))
+    out["Cr_hy"] = np.sum(SmS * (Fh - S), axis=(1, 2))
     return out
 
 
@@ -218,7 +240,8 @@ def target_of(d):
 
 def true_curve(c, k, idx=slice(None)):
     """R(alpha) on GRID from the Monte Carlo means; alpha* (clipped) and the unclipped alpha*."""
-    A, Cr, D = c["A"][idx].mean(), c["Cr_" + k][idx].mean(), c["D_" + k][idx].mean()
+    A = c["A_pool" if k == "pool" else "A"][idx].mean()
+    Cr, D = c["Cr_" + k][idx].mean(), c["D_" + k][idx].mean()
     R = A + 2 * GRID * Cr + GRID ** 2 * D
     a_raw = -Cr / D
     return R, float(np.clip(a_raw, 0, 1)), a_raw
@@ -354,6 +377,107 @@ def check_stale_big():
     return lines
 
 
+def run_light(rng, N, T, reps, sm2=SIGMA_M2, gl=0.4, tau=0.0):
+    """Gaussian data without the bootstrap. x = b m + e, m ~ N(0, sm2), e ~ N(0, Psi).
+    tau > 0: the EARLIER window has drifted betas b + tau * xi, xi ~ N(0, I) drawn per replication;
+    the current window (and hence Sigma, the estimation target) keeps b."""
+    b, Psi = factor_parts(N, gl)
+    J = model(N, sm2, gl)
+    Sigma = J[1:, 1:]
+    LP = np.linalg.cholesky(Psi)
+    parts = []
+    for r0 in range(0, reps, CHUNK):
+        r = min(CHUNK, reps - r0)
+        zs = []
+        for w in range(2):
+            m = np.sqrt(sm2) * rng.standard_normal((r, T))
+            e = rng.standard_normal((r, T, N)) @ LP.T
+            bw = b[None, :] + (tau * rng.standard_normal((r, N)) if w == 1 else 0.0)
+            x = m[:, :, None] * np.broadcast_to(bw, (r, N))[:, None, :] + e
+            zs.append(np.concatenate([m[:, :, None], x], axis=2))
+        parts.append(stats_chunk(zs[0], zs[1], Sigma, J))
+    return {k: np.concatenate([p[k] for p in parts]) for k in parts[0]}
+
+
+def oracle_prial(c, k):
+    R, a_star, _ = true_curve(c, k)
+    base = c["A"].mean()
+    return 100 * (base - np.interp(a_star, GRID, R)) / base, a_star
+
+
+def bench_line(c):
+    """Oracle PRIALs (vs E L(S) of the current T days) of every target, plus pooled S with no shrinkage."""
+    base = c["A"].mean()
+    o = {k: oracle_prial(c, k) for k in ("nu", "in", "st", "hy", "pool")}
+    return ("nuI %.1f (a*=%.3f) | in-sample SI %.1f (a*=%.3f) | #5 stale %.1f (a*=%.3f) | hybrid %.1f (a*=%.3f) | "
+            "pooled S (2T days, a=0) %.1f | pooled SI (2T days) %.1f (a*=%.3f)"
+            % (o["nu"][0], o["nu"][1], o["in"][0], o["in"][1], o["st"][0], o["st"][1], o["hy"][0], o["hy"][1],
+               100 * (base - c["A_pool"].mean()) / base, o["pool"][0], o["pool"][1]))
+
+
+def exp_design(N=30, reps=10000):
+    """Which design feature makes nu I beat the in-sample single index? Gaussian, oracle PRIALs."""
+    lines = []
+    for lab, sm2, gl in (("baseline sm2=1 g=0.4", 1.0, 0.4), ("strong market sm2=4 g=0.4", 4.0, 0.4),
+                         ("no 2nd factor sm2=1 g=0", 1.0, 0.0)):
+        for T in TS:
+            c = run_light(np.random.default_rng([SEED, 5, int(10 * sm2), int(10 * gl), N, T]), N, T, reps, sm2, gl)
+            lines.append("design %-26s N=%d T=%3d reps=%d: %s" % (lab, N, T, reps, bench_line(c)))
+    return lines
+
+
+def exp_split(reps=10000):
+    """Split ONE window of T days: betas (and nothing else) from the first half, S and s00 from the second half.
+    Oracle PRIAL against E L(S) of the full T days. Gaussian."""
+    lines = []
+    for N in NS:
+        for T in TS:
+            rng = np.random.default_rng([SEED, 7, N, T])
+            J = model(N)
+            Sigma = J[1:, 1:]
+            LJ = np.linalg.cholesky(J)
+            A_full, parts = [], []
+            for r0 in range(0, reps, CHUNK):
+                Z = draw(rng, CHUNK, T, LJ, "gauss")
+                X = Z[:, :, 1:]
+                A_full.append(np.sum((np.matmul(X.transpose(0, 2, 1), X) / T - Sigma) ** 2, axis=(1, 2)))
+                h = T // 2
+                parts.append(stats_chunk(Z[:, h:], Z[:, :h], Sigma, J))   # "earlier" window = first half
+            c = {k: np.concatenate([p[k] for p in parts]) for k in ("A", "Cr_st", "D_st")}
+            R, a_star, _ = true_curve(c, "st")
+            base = np.concatenate(A_full).mean()
+            lines.append("split N=%d T=%3d reps=%d: beta from first T/2 days, S from last T/2: oracle PRIAL vs E L(S_T) = %.1f"
+                         " (a*=%.3f); no shrinkage (S on T/2 days) %.1f"
+                         % (N, T, reps, 100 * (base - np.interp(a_star, GRID, R)) / base, a_star,
+                            100 * (base - c["A"].mean()) / base))
+    return lines
+
+
+TAUS = (0.0, 0.1, 0.2, 0.3, 0.5)
+
+
+def exp_drift(N=30, reps=10000):
+    """Drifting betas between the windows: does #5 ever beat pooling? Gaussian."""
+    lines, res = [], {}
+    for T in TS:
+        for tau in TAUS:
+            c = run_light(np.random.default_rng([SEED, 6, N, T, int(100 * tau)]), N, T, reps, tau=tau)
+            c["Coff_stein"] = c["Coff_stale"]                        # size placeholder for helpers
+            base = c["A"].mean()
+            ah, _ = alpha_hat(c, "stale")
+            p5 = 100 * (base - loss_at(c, "st", ah).mean()) / base
+            dd = chat(c, "stale") - c["Vdiag"] - c["H_st"]
+            z = dd.mean() / (dd.std(ddof=1) / np.sqrt(dd.size))
+            res[(T, tau)] = dict(p5=p5, o5=oracle_prial(c, "st")[0], hy=oracle_prial(c, "hy")[0],
+                                 pS=100 * (base - c["A_pool"].mean()) / base, pSI=oracle_prial(c, "pool")[0],
+                                 inn=oracle_prial(c, "in")[0])
+            r = res[(T, tau)]
+            lines.append("drift N=%d T=%3d tau=%.2f reps=%d: #5 data-driven %.1f, #5 oracle %.1f, hybrid oracle %.1f, "
+                         "pooled S %.1f, pooled SI oracle %.1f, in-sample SI oracle %.1f | #5 C_off-hat bias z %+.2f"
+                         % (N, T, tau, reps, r["p5"], r["o5"], r["hy"], r["pS"], r["pSI"], r["inn"], z))
+    return lines, res
+
+
 # ------------------------------------------------------------------ figures
 def save(fig, name):
     for ext in ("pdf", "png"):
@@ -415,7 +539,9 @@ def fig_targets(res, dist="gauss"):
             base = c["A"].mean()
             for k, lab, col, ls in (("nu", r"$\nu I$ target", COL["nuI"], "-"),
                                     ("in", r"single index, in-sample $\beta$", "black", "-"),
-                                    ("st", r"single index, stale $\beta$ (#5)", COL["stale"], "--")):
+                                    ("st", r"single index, stale $\beta$ (#5)", COL["stale"], "--"),
+                                    ("hy", r"hybrid: $\beta$ from $2T$ days", "0.45", "-."),
+                                    ("pool", r"$S$ and single index on all $2T$ days", "#56B4E9", "-")):
                 R, a_star, _ = true_curve(c, k)
                 ax.plot(GRID, R / base, color=col, ls=ls, lw=1.6, label=lab)
                 ax.plot([a_star], [np.interp(a_star, GRID, R) / base], marker="o", ms=4.5, color=col,
@@ -429,10 +555,34 @@ def fig_targets(res, dist="gauss"):
                 ax.set_ylabel(r"$R(\alpha)\,/\,R(0)$")
     h, l = axes[0, 0].get_legend_handles_labels()
     fig.legend(h, l, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, -0.03))
-    fig.suptitle("True risk curves by target (%s data); dots mark each target's $\\alpha^*$" % LABEL_DIST[dist],
-                 fontsize=9.5)
-    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    fig.suptitle("True risk curves (%s data), relative to $\\mathbb{E}L(S)$ on the current $T$ days; "
+                 "dots mark $\\alpha^*$" % LABEL_DIST[dist], fontsize=9.5)
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
     save(fig, "si_targets")
+
+
+def fig_drift(dres):
+    fig, axes = plt.subplots(1, 2, figsize=(6.0, 2.7), sharey=True)
+    for ax, T in zip(axes, TS):
+        x = np.array(TAUS)
+        for key, lab, col, ls, mk in (("pSI", r"$S$ + single index on $2T$ days (oracle)", "#56B4E9", "-", "s"),
+                                      ("pS", r"pooled $S$ on $2T$ days, no shrinkage", "#56B4E9", ":", "o"),
+                                      ("o5", r"#5 stale $\beta$ (oracle)", COL["stale"], "--", "D"),
+                                      ("p5", r"#5 stale $\beta$ (SURE $\hat\alpha$)", COL["stale"], "-", "D"),
+                                      ("hy", r"hybrid (oracle)", "0.45", "-.", "^"),
+                                      ("inn", r"in-sample single index (oracle)", "black", "-", "v")):
+            y = [dres[(T, t)][key] for t in TAUS]
+            ax.plot(x, y, color=col, ls=ls, marker=mk, ms=4, lw=1.4, label=lab,
+                    mfc="white" if key == "p5" else col)
+        ax.axhline(0, color="0.6", lw=0.7)
+        ax.set_ylim(-60, 62)                                         # pooled curves leave the panel at large tau
+        ax.set_title(r"$N=30$, $T=%d$" % T)
+        ax.set_xlabel(r"beta drift between windows, $\tau$")
+    axes[0].set_ylabel(r"PRIAL vs $\mathbb{E}L(S)$ (%)")
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", ncol=2, frameon=False, bbox_to_anchor=(0.5, -0.17))
+    fig.tight_layout(rect=(0, 0.02, 1, 1))
+    save(fig, "si_drift")
 
 
 def fig_prial(res):
@@ -508,24 +658,24 @@ if __name__ == "__main__":
             out.append("%-5s %3d %4d | %-8s %8.4f %8.4f | %8.4f %7.3f %6.3f | %6.1f %6.2f %6.1f %+6.1f | %6.3f %6.3f(%5.3f) %5.1f | z_bias %+6.2f"
                        % (dist, N, T, d, co, se, c["Coff_" + d].mean(), c["Coff_" + d].mean() / co, a_star,
                           p, pse, po, p - po, a_raw, ah.mean(), ah.std(), 100 * np.mean((raw < 0) | (raw > 1)), zb))
-        Rn, an, _ = true_curve(c, "nu")
-        Ri, ai, _ = true_curve(c, "in")
-        Rs, as_, _ = true_curve(c, "st")
-        base = c["A"].mean()
-        mn = lambda R: 100 * (base - R.min()) / base
-        out.append("      oracle PRIAL by target: nuI %.1f (a*=%.3f) | in-sample SI %.1f (a*=%.3f) | stale SI %.1f (a*=%.3f)"
-                   % (mn(Rn), an, mn(Ri), ai, mn(Rs), as_))
+        out.append("      oracle PRIAL by target (vs E L(S), current T days): " + bench_line(c))
         sc = {d: sure_curves(c, d).mean(axis=0) for d in DIRS}
         gaps = []
         for d in DIRS:
             R, _, _ = true_curve(c, target_of(d), slice(0, c["Coff_" + d].size))
             gaps.append("%s %.3f" % (d, np.max(np.abs(sc[d] - R)) / R[0]))
         out.append("      max_alpha |mean SURE_d - R|/R(0): " + ", ".join(gaps))
+    out += ["", "BENCHMARKS: split one window; design sensitivity; drifting betas (all Gaussian)"]
+    out += exp_split()
+    out += exp_design()
+    dl, dres = exp_drift()
+    out += dl
     out.append("")
     out.append("runtime %.1f s" % (time.time() - t0))
     fig_curves(res)
     fig_targets(res)
     fig_prial(res)
+    fig_drift(dres)
     txt = "\n".join(out)
     print(txt)
     with open(os.path.join(OUT, "si_results.txt"), "w") as f:
