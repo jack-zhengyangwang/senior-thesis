@@ -1,0 +1,98 @@
+Single-index target: four estimates of the cross term. seed 20261110; REPS=20000 per cell (BOOT_REPS=2000 for #4, B=200); T0=T; alpha clipped to [0,1].
+C_off = sum_{i!=j} Cov(f_ij, s_ij) (MC mean of sum f_ij (s_ij - sigma_ij)); bias ratio = E[C_off-hat]/C_off.
+PRIAL = 100 (E L(S) - E L(est)) / E L(S) on the same replications; oracle uses alpha* of that target.
+Directions #2-#4 estimate the in-sample-beta target's curve; #5 estimates the stale-beta target's curve.
+
+VERIFICATION
+(a) f_ii = s00^2 beta_i^2 + delta_ii vs s_ii: max |diff| = 1.33e-15
+(b) gauss N=5 T=12 reps=400000: C_off (MC of sum f(s-sigma)) = 8.52041; E[Stein with true J] = 8.55048; diff z = -1.18 | plug-in Stein mean = 9.74712, ratio 1.144, z = +62.7
+(b) t10   N=5 T=12 reps=400000: C_off (MC of sum f(s-sigma)) = 12.20692; E[Stein with true J] = 8.59460; diff z = +64.22 | plug-in Stein mean = 10.44116, ratio 0.855, z = -39.5
+(c) gauss N=10 T=30: C_off,5 true (MC) = 6.95035, mean C_off-hat_5 = 7.05656, ratio 1.0153, paired z = +0.48
+(d) gauss N=10 T=30: a=0.00: R=22.254 meanSURE=22.357 z=+1.01; a=0.25: R=17.803 meanSURE=17.888 z=+0.91; a=0.50: R=16.230 meanSURE=16.297 z=+0.73; a=0.75: R=17.536 meanSURE=17.585 z=+0.51; a=1.00: R=21.721 meanSURE=21.752 z=+0.29
+    V-hat check: mean V-hat = 22.3573, exact V = 22.3405, MC E L(S) = 22.2543, z(V-hat - L(S)) = +1.01
+(c) gauss N=10 T=120: C_off,5 true (MC) = 1.95332, mean C_off-hat_5 = 1.75483, ratio 0.8984, paired z = -1.88
+(d) gauss N=10 T=120: a=0.00: R=5.570 meanSURE=5.593 z=+0.93; a=0.25: R=4.539 meanSURE=4.563 z=+1.02; a=0.50: R=4.413 meanSURE=4.437 z=+1.04; a=0.75: R=5.192 meanSURE=5.216 z=+0.99; a=1.00: R=6.876 meanSURE=6.901 z=+0.90
+    V-hat check: mean V-hat = 5.5930, exact V = 5.5851, MC E L(S) = 5.5696, z(V-hat - L(S)) = +0.93
+(c) gauss N=30 T=30: C_off,5 true (MC) = 69.60339, mean C_off-hat_5 = 68.66715, ratio 0.9865, paired z = -0.45
+(d) gauss N=30 T=30: a=0.00: R=193.149 meanSURE=192.468 z=-0.83; a=0.25: R=150.069 meanSURE=149.543 z=-0.66; a=0.50: R=134.611 meanSURE=134.241 z=-0.47; a=0.75: R=146.776 meanSURE=146.561 z=-0.26; a=1.00: R=186.564 meanSURE=186.504 z=-0.07
+    V-hat check: mean V-hat = 192.4684, exact V = 191.9748, MC E L(S) = 193.1489, z(V-hat - L(S)) = -0.83
+(c) gauss N=30 T=120: C_off,5 true (MC) = 17.50102, mean C_off-hat_5 = 17.04266, ratio 0.9738, paired z = -0.47
+(d) gauss N=30 T=120: a=0.00: R=48.124 meanSURE=48.038 z=-0.44; a=0.25: R=38.196 meanSURE=38.186 z=-0.05; a=0.50: R=36.982 meanSURE=37.049 z=+0.35; a=0.75: R=44.482 meanSURE=44.625 z=+0.72; a=1.00: R=60.695 meanSURE=60.915 z=+1.03
+    V-hat check: mean V-hat = 48.0376, exact V = 47.9937, MC E L(S) = 48.1239, z(V-hat - L(S)) = -0.44
+(c) t10   N=10 T=30: C_off,5 true (MC) = 10.51606, mean C_off-hat_5 = 10.56590, ratio 1.0047, paired z = +0.18
+(d) t10   N=10 T=30: a=0.00: R=31.376 meanSURE=31.641 z=+1.78; a=0.25: R=25.296 meanSURE=25.584 z=+2.06; a=0.50: R=22.945 meanSURE=23.256 z=+2.25; a=0.75: R=24.324 meanSURE=24.657 z=+2.31; a=1.00: R=29.433 meanSURE=29.788 z=+2.26
+    V-hat check: mean V-hat = 31.6411, exact V = 31.5498, MC E L(S) = 31.3755, z(V-hat - L(S)) = +1.78
+(c) t10   N=10 T=120: C_off,5 true (MC) = 2.77000, mean C_off-hat_5 = 2.63204, ratio 0.9502, paired z = -1.06
+(d) t10   N=10 T=120: a=0.00: R=7.984 meanSURE=7.901 z=-2.18; a=0.25: R=6.543 meanSURE=6.478 z=-1.83; a=0.50: R=6.216 meanSURE=6.169 z=-1.33; a=0.75: R=7.004 meanSURE=6.975 z=-0.78; a=1.00: R=8.906 meanSURE=8.896 z=-0.26
+    V-hat check: mean V-hat = 7.9015, exact V = 7.8874, MC E L(S) = 7.9843, z(V-hat - L(S)) = -2.18
+(c) t10   N=30 T=30: C_off,5 true (MC) = 102.71956, mean C_off-hat_5 = 102.68508, ratio 0.9997, paired z = -0.01
+(d) t10   N=30 T=30: a=0.00: R=270.027 meanSURE=270.048 z=+0.02; a=0.25: R=211.921 meanSURE=211.952 z=+0.03; a=0.50: R=189.468 meanSURE=189.508 z=+0.03; a=0.75: R=202.667 meanSURE=202.717 z=+0.04; a=1.00: R=251.519 meanSURE=251.579 z=+0.05
+    V-hat check: mean V-hat = 270.0481, exact V = 269.3743, MC E L(S) = 270.0275, z(V-hat - L(S)) = +0.02
+(c) t10   N=30 T=120: C_off,5 true (MC) = 23.83767, mean C_off-hat_5 = 25.30992, ratio 1.0618, paired z = +1.23
+(d) t10   N=30 T=120: a=0.00: R=66.623 meanSURE=67.041 z=+1.44; a=0.25: R=52.987 meanSURE=53.418 z=+1.53; a=0.50: R=49.981 meanSURE=50.427 z=+1.58; a=0.75: R=57.606 meanSURE=58.066 z=+1.58; a=1.00: R=75.862 meanSURE=76.336 z=+1.53
+    V-hat check: mean V-hat = 67.0405, exact V = 67.3436, MC E L(S) = 66.6229, z(V-hat - L(S)) = +1.44
+(c+) gauss N=10 T=30: C_off,5 true (MC) = 6.96423, mean C_off-hat_5 = 6.99645, ratio 1.0046, paired z = +0.65  [reps=400000]
+(d+) gauss N=10 T=30: a=0.00: R=22.324 meanSURE=22.330 z=+0.26; a=0.25: R=17.838 meanSURE=17.846 z=+0.41; a=0.50: R=16.235 meanSURE=16.246 z=+0.54; a=0.75: R=17.516 meanSURE=17.530 z=+0.64; a=1.00: R=21.680 meanSURE=21.697 z=+0.68
+    V-hat check: mean V-hat = 22.3300, exact V = 22.3405, MC E L(S) = 22.3239, z(V-hat - L(S)) = +0.26
+(c+) gauss N=10 T=120: C_off,5 true (MC) = 1.75226, mean C_off-hat_5 = 1.75312, ratio 1.0005, paired z = +0.03  [reps=200000]
+(d+) gauss N=10 T=120: a=0.00: R=5.582 meanSURE=5.587 z=+0.55; a=0.25: R=4.553 meanSURE=4.558 z=+0.64; a=0.50: R=4.430 meanSURE=4.435 z=+0.69; a=0.75: R=5.211 meanSURE=5.216 z=+0.70; a=1.00: R=6.897 meanSURE=6.903 z=+0.66
+    V-hat check: mean V-hat = 5.5867, exact V = 5.5851, MC E L(S) = 5.5824, z(V-hat - L(S)) = +0.55
+(c+) t10   N=10 T=30: C_off,5 true (MC) = 10.49288, mean C_off-hat_5 = 10.50466, ratio 1.0011, paired z = +0.19  [reps=400000]
+(d+) t10   N=10 T=30: a=0.00: R=31.533 meanSURE=31.546 z=+0.38; a=0.25: R=25.498 meanSURE=25.499 z=+0.04; a=0.50: R=23.182 meanSURE=23.172 z=-0.33; a=0.75: R=24.587 meanSURE=24.565 z=-0.68; a=1.00: R=29.712 meanSURE=29.678 z=-0.95
+    V-hat check: mean V-hat = 31.5463, exact V = 31.5498, MC E L(S) = 31.5333, z(V-hat - L(S)) = +0.38
+(c+) t10   N=10 T=120: C_off,5 true (MC) = 2.64849, mean C_off-hat_5 = 2.62290, ratio 0.9903, paired z = -0.62  [reps=200000]
+(d+) t10   N=10 T=120: a=0.00: R=7.897 meanSURE=7.885 z=-1.02; a=0.25: R=6.468 meanSURE=6.462 z=-0.58; a=0.50: R=6.149 meanSURE=6.148 z=-0.07; a=0.75: R=6.939 meanSURE=6.944 z=+0.44; a=1.00: R=8.839 meanSURE=8.850 z=+0.85
+    V-hat check: mean V-hat = 7.8847, exact V = 7.8874, MC E L(S) = 7.8969, z(V-hat - L(S)) = -1.02
+
+RESULTS
+dist    N    T | dir         C_off     (se) | E[Chat]    ratio     a* |  PRIAL  (seΔ)   orac      Δ |  a*raw mean(sd) ahat  clip%
+gauss  10   30 | stein     14.8138   0.2662 |  15.7561   1.064  0.645 |    7.4   0.05   11.4   -4.0 |  0.645  0.489(0.350)  31.5 | z_bias  +4.25
+gauss  10   30 | delta     14.8138   0.2662 |  15.0631   1.017  0.645 |   10.4   0.02   11.4   -0.9 |  0.645  0.683(0.182)   8.3 | z_bias  +1.11
+gauss  10   30 | boot      14.8138   0.2662 |  14.6815   0.991  0.645 |   10.0   0.08   11.3   -1.3 |  0.645  0.709(0.222)  19.4 | z_bias  -0.35
+gauss  10   30 | stale      6.9504   0.2472 |   7.0566   1.015  0.512 |   25.4   0.09   27.1   -1.7 |  0.512  0.596(0.224)   8.6 | z_bias  +0.48
+      oracle PRIAL by target: nuI 15.6 (a*=0.164) | in-sample SI 11.4 (a*=0.645) | stale SI 27.1 (a*=0.512)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.077, delta 0.014, boot 0.027, stale 0.005
+gauss  10  120 | stein      3.9132   0.1113 |   3.7679   0.963  0.308 |    3.3   0.04    5.6   -2.3 |  0.308  0.315(0.180)   1.8 | z_bias  -1.37
+gauss  10  120 | delta      3.9132   0.1113 |   3.7170   0.950  0.308 |    4.4   0.02    5.6   -1.2 |  0.308  0.334(0.096)   0.0 | z_bias  -1.85
+gauss  10  120 | boot       3.9132   0.1113 |   3.6988   0.945  0.308 |    4.1   0.06    5.6   -1.5 |  0.308  0.336(0.128)   0.2 | z_bias  -0.30
+gauss  10  120 | stale      1.9533   0.1089 |   1.7548   0.898  0.410 |   18.6   0.06   21.8   -3.2 |  0.410  0.459(0.159)   0.8 | z_bias  -1.88
+      oracle PRIAL by target: nuI 4.9 (a*=0.049) | in-sample SI 5.6 (a*=0.308) | stale SI 21.8 (a*=0.410)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.024, delta 0.005, boot 0.006, stale 0.004
+gauss  30   30 | stein    145.1371   2.4843 | 151.7960   1.046  0.648 |    8.7   0.04   12.8   -4.1 |  0.648  0.488(0.330)  25.9 | z_bias  +3.22
+gauss  30   30 | delta    145.1371   2.4843 | 145.0847   1.000  0.648 |   12.4   0.01   12.8   -0.4 |  0.648  0.660(0.122)   0.3 | z_bias  -0.02
+gauss  30   30 | boot     145.1371   2.4843 | 142.4370   0.981  0.648 |   11.9   0.05   12.9   -1.0 |  0.648  0.706(0.194)  11.8 | z_bias  -0.11
+gauss  30   30 | stale     69.6034   2.3373 |  68.6672   0.987  0.515 |   29.8   0.05   30.3   -0.5 |  0.515  0.564(0.154)   0.7 | z_bias  -0.45
+      oracle PRIAL by target: nuI 15.1 (a*=0.153) | in-sample SI 12.8 (a*=0.648) | stale SI 30.3 (a*=0.515)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.078, delta 0.009, boot 0.023, stale 0.004
+gauss  30  120 | stein     36.1839   1.0355 |  36.1298   0.999  0.311 |    4.6   0.03    6.4   -1.7 |  0.311  0.305(0.150)   0.7 | z_bias  -0.05
+gauss  30  120 | delta     36.1839   1.0355 |  35.7019   0.987  0.311 |    5.8   0.01    6.4   -0.6 |  0.311  0.320(0.060)   0.0 | z_bias  -0.49
+gauss  30  120 | boot      36.1839   1.0355 |  35.5285   0.982  0.311 |    5.6   0.05    6.5   -0.9 |  0.311  0.325(0.094)   0.1 | z_bias  -0.11
+gauss  30  120 | stale     17.5010   1.0145 |  17.0427   0.974  0.410 |   23.0   0.03   24.3   -1.4 |  0.410  0.429(0.092)   0.0 | z_bias  -0.47
+      oracle PRIAL by target: nuI 4.3 (a*=0.043) | in-sample SI 6.4 (a*=0.311) | stale SI 24.3 (a*=0.410)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.021, delta 0.004, boot 0.010, stale 0.005
+t10    10   30 | stein     21.2243   0.4049 |  16.3079   0.768  0.714 |   10.1   0.03   11.8   -1.7 |  0.714  0.758(0.295)  48.0 | z_bias -14.27
+t10    10   30 | delta     21.2243   0.4049 |  21.5181   1.014  0.714 |   11.2   0.02   11.8   -0.6 |  0.714  0.717(0.182)  11.5 | z_bias  +1.05
+t10    10   30 | boot      21.2243   0.4049 |  21.1761   0.998  0.714 |   10.1   0.10   11.3   -1.2 |  0.714  0.741(0.241)  26.9 | z_bias  -0.86
+t10    10   30 | stale     10.5161   0.3523 |  10.5659   1.005  0.533 |   26.6   0.11   27.0   -0.4 |  0.533  0.604(0.234)  10.0 | z_bias  +0.18
+      oracle PRIAL by target: nuI 20.4 (a*=0.216) | in-sample SI 11.8 (a*=0.714) | stale SI 27.0 (a*=0.533)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.305, delta 0.027, boot 0.018, stale 0.011
+t10    10  120 | stein      5.4188   0.1475 |   3.7943   0.700  0.375 |   -0.3   0.07    6.3   -6.6 |  0.375  0.674(0.252)  23.7 | z_bias -11.57
+t10    10  120 | delta      5.4188   0.1475 |   5.2693   0.972  0.375 |    5.5   0.02    6.3   -0.9 |  0.375  0.398(0.119)   0.1 | z_bias  -1.14
+t10    10  120 | boot       5.4188   0.1475 |   5.3879   0.994  0.375 |    4.6   0.08    6.1   -1.5 |  0.375  0.405(0.179)   2.5 | z_bias  -3.64
+t10    10  120 | stale      2.7700   0.1405 |   2.6320   0.950  0.448 |   20.1   0.08   22.4   -2.4 |  0.448  0.495(0.181)   2.0 | z_bias  -1.06
+      oracle PRIAL by target: nuI 6.3 (a*=0.066) | in-sample SI 6.3 (a*=0.375) | stale SI 22.4 (a*=0.448)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.374, delta 0.010, boot 0.026, stale 0.010
+t10    30   30 | stein    204.5019   3.9701 | 156.5886   0.766  0.717 |   11.8   0.02   13.3   -1.5 |  0.717  0.782(0.264)  45.4 | z_bias -14.09
+t10    30   30 | delta    204.5019   3.9701 | 206.9678   1.012  0.717 |   13.1   0.01   13.3   -0.2 |  0.717  0.705(0.122)   0.8 | z_bias  +0.96
+t10    30   30 | boot     204.5019   3.9701 | 212.7274   1.040  0.717 |   11.8   0.07   12.8   -1.0 |  0.717  0.740(0.213)  18.8 | z_bias  -0.07
+t10    30   30 | stale    102.7196   3.5366 | 102.6851   1.000  0.532 |   30.3   0.06   29.9   +0.4 |  0.532  0.577(0.165)   1.2 | z_bias  -0.01
+      oracle PRIAL by target: nuI 19.7 (a*=0.201) | in-sample SI 13.3 (a*=0.717) | stale SI 29.9 (a*=0.532)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.354, delta 0.019, boot 0.006, stale 0.000
+t10    30  120 | stein     48.6610   1.3331 |  36.3262   0.747  0.377 |    0.6   0.06    7.4   -6.7 |  0.377  0.675(0.232)  20.3 | z_bias  -9.72
+t10    30  120 | delta     48.6610   1.3331 |  50.3072   1.034  0.377 |    7.0   0.01    7.4   -0.4 |  0.377  0.385(0.077)   0.0 | z_bias  +1.38
+t10    30  120 | boot      48.6610   1.3331 |  50.5532   1.039  0.377 |    6.4   0.06    7.5   -1.1 |  0.377  0.391(0.138)   1.5 | z_bias  +0.32
+t10    30  120 | stale     23.8377   1.2829 |  25.3099   1.062  0.446 |   24.4   0.03   25.4   -1.0 |  0.446  0.466(0.109)   0.0 | z_bias  +1.23
+      oracle PRIAL by target: nuI 5.5 (a*=0.057) | in-sample SI 7.4 (a*=0.377) | stale SI 25.4 (a*=0.446)
+      max_alpha |mean SURE_d - R|/R(0): stein 0.407, delta 0.012, boot 0.031, stale 0.007
+
+runtime 114.4 s

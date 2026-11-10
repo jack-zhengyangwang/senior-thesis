@@ -16,3 +16,4 @@ __pycache__/
 # third-party papers (copyrighted PDFs, keep out of a pushed repo)
 papers/
 thesis/preview.pdf
+thesis/single_index_directions.pdf
