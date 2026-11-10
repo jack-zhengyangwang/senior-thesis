@@ -123,8 +123,12 @@ If $N = 1$, then $F = S$ and the estimator equals $S$ for every $\alpha$, so the
 
 \subsection{The single-index target}
 
-For the single-index target $F = s_{00}^2\hat\beta\hat\beta' + \hat\Delta$, Steps 1 and 2 go through unchanged, and Lemma~\ref{lem:stein-cov} gives
+We now return to the single-index target $F = s_{00}^2\hat\beta\hat\beta' + \hat\Delta$ of Section~3, keeping the estimated betas $\hat\beta$ rather than simplifying them away. Step 1 goes through unchanged, since it is pure algebra and holds for any target. Step 2 also still applies: under joint normality of the market and asset returns, Stein's lemma turns the cross term $\sum_{i,j}\mathbb{E}[f_{ij}(s_{ij} - \sigma_{ij})]$ into expectations of derivatives of $f_{ij}$, now taken with respect to the market returns as well as the asset returns.
+
+The difficulty is Step 3. Off the diagonal,
 \[
-  \mathbb{E}\left[ f_{ij}(s_{ij} - \sigma_{ij}) \right] = \frac{1}{T}\sum_{t=1}^T \sum_{k=1}^N \sigma_{ik}\, \mathbb{E}\left[ x_{tj}\, \frac{\partial f_{ij}}{\partial x_{tk}} \right].
+  f_{ij} = s_{00}^2\,\hat\beta_i\hat\beta_j = \frac{s_{0i}\,s_{0j}}{s_{00}^2}, \qquad i \neq j,
 \]
-Now $\partial f_{ij}/\partial x_{tk}$ is a nonlinear function of the data, so the right-hand side is no longer a polynomial in $\Sigma$, and Step 3 has no exact counterpart. Replacing $\sigma_{ik}$ by $s_{ik}$ gives a natural estimate, but it is biased because $s_{ik}$ is correlated with the derivative, so the resulting risk estimate is only approximately unbiased. The Stein route is therefore exact for linear targets such as $\nu I$ and approximate for the single-index target, the same boundary met by the distribution-free route of Section~\ref{sec:df-sure}.
+where $s_{0i}$ is the sample covariance between asset $i$ and the market and $s_{00}^2$ is the sample variance of the market. Because the sample market variance appears in the denominator, $f_{ij}$ is a ratio of random quantities, and so are its derivatives. The expectations produced by Stein's lemma are therefore expectations of ratios. Unlike the scaled-identity case, where every term collapsed to the two scalars $(\operatorname{tr}\Sigma)^2$ and $\operatorname{tr}(\Sigma^2)$, they do not reduce to a closed form in the population moments, so there is no expression to replace by an unbiased estimate.
+
+The direct Stein argument is therefore stuck at this point for the single-index target: Steps 1 and 2 hold, but completing the SURE requires an alternative method for the cross term.
