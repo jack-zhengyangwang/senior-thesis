@@ -1,0 +1,21 @@
+% Local preview wrapper. Overleaf main.tex is the real document;
+% sec3/sec4 here are snapshots from the 2026-11-05 session and may lag Overleaf.
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,graphicx,booktabs}
+\usepackage[round]{natbib}
+\usepackage{hyperref}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{remark}\newtheorem*{remark}{Remark}
+\graphicspath{{../sims/out/}}
+\begin{document}
+\input{sec3_proofs}
+\input{sec4_stein}
+\IfFileExists{sec5_distribution_free_sure.tex}{\input{sec5_distribution_free_sure}}{}
+\IfFileExists{sec6_simulations.tex}{\input{sec6_simulations}}{}
+\bibliographystyle{apalike}
+\bibliography{refs}
+\end{document}

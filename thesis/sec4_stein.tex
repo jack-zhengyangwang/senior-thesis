@@ -1,0 +1,130 @@
+\section{Stein's Approach to Ledoit--Wolf Shrinkage}
+
+This section derives an unbiased risk estimate for Ledoit--Wolf shrinkage by following Stein's argument step by step.
+
+\subsection{Stein's argument}
+
+Let $X \sim N(\theta, \sigma^2 I_p)$ with $\sigma^2$ known, and write an estimator as $\hat\theta = X + g(X)$. Stein's argument has three steps.
+
+\emph{Step 1 (expand).} Since $\hat\theta - \theta = (X - \theta) + g(X)$,
+\[
+  \mathbb{E}\|\hat\theta - \theta\|^2 = \mathbb{E}\|X - \theta\|^2 + \mathbb{E}\|g(X)\|^2 + 2\sum_{i=1}^p \mathbb{E}\left[ g_i(X)(X_i - \theta_i) \right],
+\]
+with $\mathbb{E}\|X - \theta\|^2 = p\sigma^2$. The cross term contains the unknown $\theta$.
+
+\emph{Step 2 (Stein's lemma).} $\mathbb{E}[g_i(X)(X_i - \theta_i)] = \sigma^2\, \mathbb{E}[\partial g_i/\partial X_i]$, so the cross term becomes an expectation of a function of the data.
+
+\emph{Step 3 (unbiased estimate).} Dropping the expectations gives
+\[
+  \mathrm{SURE} = p\sigma^2 + \|g(X)\|^2 + 2\sigma^2 \sum_{i=1}^p \frac{\partial g_i}{\partial X_i}(X), \qquad \mathbb{E}[\mathrm{SURE}] = \mathbb{E}\|\hat\theta - \theta\|^2 .
+\]
+We now carry out the same three steps for covariance shrinkage.
+
+\subsection{Setup}
+
+Assume the daily return vectors $x_1, \dots, x_T \in \mathbb{R}^N$ (the columns of $X$) are i.i.d.\ $N(0, \Sigma)$, with the mean known to be zero, and let $S = \frac{1}{T}\sum_{t=1}^T x_t x_t'$, so that $\mathbb{E}S = \Sigma$. Write $x_{ti}$ for the return on asset $i$ on day $t$. The Ledoit--Wolf estimator has the same form as Stein's,
+\[
+  \hat\Sigma = \alpha F + (1-\alpha) S = S + g(S), \qquad g(S) = \alpha(F - S),
+\]
+with $S$ in the role of $X$, $\Sigma$ in the role of $\theta$, and $g_{ij} = \alpha(f_{ij} - s_{ij})$. To make every step explicit we take the scaled-identity target $F = \nu I$ with $\nu = \operatorname{tr}(S)/N$, and return to the single-index target at the end.
+
+\begin{lemma}[Multivariate Stein lemma]
+If $x \sim N(0, \Sigma)$ and $\varphi : \mathbb{R}^N \to \mathbb{R}$ is differentiable with $\mathbb{E}|\partial\varphi/\partial x_k| < \infty$ for all $k$, then
+\[
+  \mathbb{E}\left[ x_i\, \varphi(x) \right] = \sum_{k=1}^N \sigma_{ik}\, \mathbb{E}\left[ \frac{\partial \varphi}{\partial x_k}(x) \right], \qquad i = 1, \dots, N.
+\]
+\end{lemma}
+
+\subsection{Step 1: expanding the risk}
+
+Since $\hat\Sigma - \Sigma = (S - \Sigma) + g(S)$,
+\[
+  R(\alpha) = \mathbb{E}\|\hat\Sigma - \Sigma\|^2
+  = \mathbb{E}\|S - \Sigma\|^2 + \alpha^2\, \mathbb{E}\|F - S\|^2 + 2\alpha \sum_{i,j=1}^N \mathbb{E}\left[ (f_{ij} - s_{ij})(s_{ij} - \sigma_{ij}) \right].
+\]
+Two terms contain unknowns. The first, $\mathbb{E}\|S - \Sigma\|^2 = \sum_{i,j}\operatorname{Var}(s_{ij})$, is the analogue of $p\sigma^2$, but unlike $p\sigma^2$ it is not known. The last is the cross term, which contains $\sigma_{ij}$.
+
+\subsection{Step 2: Stein's lemma for the cross term}
+
+\begin{lemma}\label{lem:stein-cov}
+For every smooth function $h$ of $x_1, \dots, x_T$ and every pair $(i,j)$,
+\[
+  \mathbb{E}\left[ h\,(s_{ij} - \sigma_{ij}) \right] = \frac{1}{T} \sum_{t=1}^T \sum_{k=1}^N \sigma_{ik}\, \mathbb{E}\left[ x_{tj}\, \frac{\partial h}{\partial x_{tk}} \right].
+\]
+\end{lemma}
+
+\begin{proof}
+Fix a day $t$ and condition on the other days; by independence $x_t \sim N(0, \Sigma)$ still. Apply the Stein lemma to $x_t$ with $\varphi = x_{tj}\, h$. Since $\partial\varphi/\partial x_{tk} = \delta_{jk}\, h + x_{tj}\, \partial h/\partial x_{tk}$,
+\begin{align*}
+  \mathbb{E}\left[ x_{ti}x_{tj}\, h \right]
+  &= \sum_{k=1}^N \sigma_{ik} \left( \delta_{jk}\, \mathbb{E}[h] + \mathbb{E}\left[ x_{tj}\, \frac{\partial h}{\partial x_{tk}} \right] \right) \\
+  &= \sigma_{ij}\, \mathbb{E}[h] + \sum_{k=1}^N \sigma_{ik}\, \mathbb{E}\left[ x_{tj}\, \frac{\partial h}{\partial x_{tk}} \right].
+\end{align*}
+Subtract $\sigma_{ij}\mathbb{E}[h]$, average over $t$, and use $s_{ij} - \sigma_{ij} = \frac{1}{T}\sum_t (x_{ti}x_{tj} - \sigma_{ij})$.
+\end{proof}
+
+This is where the covariance problem differs from Stein's. In the normal-means problem the multiplier on the right is the known $\sigma^2$. Here the noise variance of the data is $\Sigma$ itself, so the multipliers $\sigma_{ik}$ are unknown. Stein's lemma therefore does not finish the job: it turns the cross term into an expression in $\Sigma$, and a further step is needed to estimate that expression.
+
+We apply the lemma to the two parts of $h = f_{ij} - s_{ij}$.
+
+\emph{The sample-covariance part.} With $h = s_{ij}$ and $\partial s_{ij}/\partial x_{tk} = (\delta_{ik}x_{tj} + \delta_{jk}x_{ti})/T$,
+\[
+  \operatorname{Var}(s_{ij}) = \mathbb{E}\left[ s_{ij}(s_{ij} - \sigma_{ij}) \right]
+  = \frac{1}{T^2}\sum_{t=1}^T \left( \sigma_{ii}\,\mathbb{E}[x_{tj}^2] + \sigma_{ij}\,\mathbb{E}[x_{ti}x_{tj}] \right)
+  = \frac{\sigma_{ii}\sigma_{jj} + \sigma_{ij}^2}{T}.
+\]
+Summing over $(i,j)$ gives the analogue of $p\sigma^2$:
+\[
+  \mathbb{E}\|S - \Sigma\|^2 = \frac{(\operatorname{tr}\Sigma)^2 + \operatorname{tr}(\Sigma^2)}{T}.
+\]
+
+\emph{The target part.} With $h = f_{ij} = \delta_{ij}\, \frac{1}{NT}\sum_{t,m} x_{tm}^2$ we have $\partial f_{ij}/\partial x_{tk} = \delta_{ij}\, 2x_{tk}/(NT)$, so
+\[
+  \mathbb{E}\left[ f_{ij}(s_{ij} - \sigma_{ij}) \right]
+  = \delta_{ij}\, \frac{2}{NT^2}\sum_{t=1}^T \sum_{k=1}^N \sigma_{ik}\, \mathbb{E}[x_{tj}x_{tk}]
+  = \delta_{ij}\, \frac{2\,(\Sigma^2)_{ii}}{NT},
+\]
+and summing over $(i,j)$ gives $2\operatorname{tr}(\Sigma^2)/(NT)$.
+
+Putting the pieces into Step 1,
+\[
+  R(\alpha) = (1 - 2\alpha)\, \frac{(\operatorname{tr}\Sigma)^2 + \operatorname{tr}(\Sigma^2)}{T} + \alpha^2\, \mathbb{E}\|F - S\|^2 + \frac{4\alpha}{NT}\operatorname{tr}(\Sigma^2).
+\]
+Every unknown is now one of the two scalars $(\operatorname{tr}\Sigma)^2$ and $\operatorname{tr}(\Sigma^2)$.
+
+\subsection{Step 3: unbiased estimates and SURE}
+
+Under normality the first two moments of $S$ are known in closed form, and Lemma~\ref{lem:stein-cov} gives them as well:
+\[
+  \mathbb{E}\left[ (\operatorname{tr}S)^2 \right] = (\operatorname{tr}\Sigma)^2 + \frac{2}{T}\operatorname{tr}(\Sigma^2),
+  \qquad
+  \mathbb{E}\left[ \operatorname{tr}(S^2) \right] = \operatorname{tr}(\Sigma^2) + \frac{(\operatorname{tr}\Sigma)^2 + \operatorname{tr}(\Sigma^2)}{T}.
+\]
+Solving these two equations for unbiased combinations gives
+\begin{align*}
+  \hat V &= \frac{T(\operatorname{tr}S)^2 + (T-2)\operatorname{tr}(S^2)}{(T+2)(T-1)},
+  & \mathbb{E}\hat V &= \frac{(\operatorname{tr}\Sigma)^2 + \operatorname{tr}(\Sigma^2)}{T}, \\
+  \hat b &= \frac{T\left[ T\operatorname{tr}(S^2) - (\operatorname{tr}S)^2 \right]}{(T+2)(T-1)},
+  & \mathbb{E}\hat b &= \operatorname{tr}(\Sigma^2).
+\end{align*}
+Replacing each unknown in $R(\alpha)$ by its unbiased estimate, and $\mathbb{E}\|F - S\|^2$ by $\|F - S\|^2$, gives
+\[
+  \mathrm{SURE}(\alpha) = (1 - 2\alpha)\hat V + \alpha^2 \|F - S\|^2 + \frac{4\alpha}{NT}\hat b,
+  \qquad \mathbb{E}[\mathrm{SURE}(\alpha)] = R(\alpha).
+\]
+It is a quadratic in $\alpha$, minimized at
+\[
+  \hat\alpha = \frac{\hat V - 2\hat b/(NT)}{\|F - S\|^2},
+\]
+which mirrors the population optimum $\alpha^* = \sum_{i,j}[\operatorname{Var}(s_{ij}) - \operatorname{Cov}(f_{ij}, s_{ij})] / \mathbb{E}\|F - S\|^2$ term by term.
+
+\paragraph{Checks.}
+If $N = 1$, then $F = S$ and the estimator equals $S$ for every $\alpha$, so the risk must not depend on $\alpha$. Indeed, with $(\operatorname{tr}\Sigma)^2 = \operatorname{tr}(\Sigma^2) = \sigma^4$, the formula gives $R(\alpha) = (1 - 2\alpha)\, 2\sigma^4/T + 4\alpha\sigma^4/T = 2\sigma^4/T$. A Monte Carlo check with $N = 4$ and $T = 10$ also confirms that $\mathbb{E}[\mathrm{SURE}(\alpha)]$ matches the simulated risk for several values of $\alpha$.
+
+\subsection{The single-index target}
+
+For the single-index target $F = s_{00}^2\hat\beta\hat\beta' + \hat\Delta$, Steps 1 and 2 go through unchanged, and Lemma~\ref{lem:stein-cov} gives
+\[
+  \mathbb{E}\left[ f_{ij}(s_{ij} - \sigma_{ij}) \right] = \frac{1}{T}\sum_{t=1}^T \sum_{k=1}^N \sigma_{ik}\, \mathbb{E}\left[ x_{tj}\, \frac{\partial f_{ij}}{\partial x_{tk}} \right].
+\]
+Now $\partial f_{ij}/\partial x_{tk}$ is a nonlinear function of the data, so the right-hand side is no longer a polynomial in $\Sigma$, and Step 3 has no exact counterpart. Replacing $\sigma_{ik}$ by $s_{ik}$ gives a natural estimate, but it is biased because $s_{ik}$ is correlated with the derivative, so the resulting risk estimate is only approximately unbiased. The Stein route is therefore exact for linear targets such as $\nu I$ and approximate for the single-index target, the same boundary met by the distribution-free route of Section~3.2.

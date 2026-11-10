@@ -1,0 +1,119 @@
+\section{Proofs of Theoretical Results}
+
+\subsection{Ledoit--Wolf Shrinkage Estimator}
+
+This subsection follows \cite{ledoit2004}.
+
+\paragraph{Setup.}
+Let $X$ be the $N \times T$ matrix of returns on $N$ stocks over $T$ periods. We assume: (i) returns are i.i.d.\ over time; (ii) $N$ is fixed while $T \to \infty$; (iii) returns have finite fourth moments, $\mathbb{E}|x_{it}x_{jt}x_{kt}x_{lt}| < \infty$ for all $i,j,k,l$ and $t$, which controls how fat the tails are; (iv) $\Phi \neq \Sigma$, so the target is biased; and (v) $\sigma_{00}^2 > 0$, so the market return varies over time. The sample covariance matrix is
+\[
+  S = \frac{1}{T} X \left( I - \frac{1}{T}\mathbf{1}\mathbf{1}' \right) X',
+\]
+which is rank-deficient whenever $N > T-1$.
+
+\paragraph{Shrinkage target.}
+Under Sharpe's single-index model $x_{it} = \alpha_i + \beta_i x_{0t} + \varepsilon_{it}$, where $x_{0t}$ is the market return and $\operatorname{Var}(\varepsilon_{it}) = \delta_{ii}$, the covariance matrix is $\Phi = \sigma_{00}^2 \beta\beta' + \Delta$ with $\Delta = \operatorname{diag}(\delta_{ii})$. Its regression estimate $F = s_{00}^2\,\hat\beta\hat\beta' + \hat\Delta$ is the target. $F$ has few parameters but is biased, while $S$ is asymptotically unbiased but noisy; shrinkage trades off the two.
+
+\paragraph{Optimal shrinkage intensity.}
+For a symmetric $N \times N$ matrix $Z$ with eigenvalues $\lambda_i$, $\|Z\|^2 = \operatorname{tr}(Z^2) = \sum_{i,j} z_{ij}^2 = \sum_i \lambda_i^2$. The risk of $\alpha F + (1-\alpha)S$ is
+\[
+  R(\alpha) = \mathbb{E}\left\| \alpha F + (1-\alpha) S - \Sigma \right\|^2
+  = \sum_{i,j=1}^N \operatorname{Var}\left( \alpha f_{ij} + (1-\alpha) s_{ij} \right)
+  + \left[ \mathbb{E}\left( \alpha f_{ij} + (1-\alpha) s_{ij} \right) - \sigma_{ij} \right]^2 .
+\]
+Since $\mathbb{E}(s_{ij}) = \sigma_{ij}$ and $\mathbb{E}(f_{ij}) = \phi_{ij}$,
+\[
+  R(\alpha) = \sum_{i,j=1}^N \alpha^2 \operatorname{Var}(f_{ij}) + (1-\alpha)^2 \operatorname{Var}(s_{ij})
+  + 2\alpha(1-\alpha) \operatorname{Cov}(f_{ij}, s_{ij}) + \alpha^2 (\phi_{ij} - \sigma_{ij})^2 .
+\]
+Differentiating,
+\begin{align*}
+  R'(\alpha) &= 2 \sum_{i,j=1}^N \alpha \operatorname{Var}(f_{ij}) - (1-\alpha) \operatorname{Var}(s_{ij})
+  + (1-2\alpha) \operatorname{Cov}(f_{ij}, s_{ij}) + \alpha (\phi_{ij} - \sigma_{ij})^2, \\
+  R''(\alpha) &= 2 \sum_{i,j=1}^N \operatorname{Var}(f_{ij} - s_{ij}) + (\phi_{ij} - \sigma_{ij})^2 \geq 0,
+\end{align*}
+so $R$ is convex, and $R'(\alpha) = 0$ gives
+\[
+  \alpha^* = \frac{\sum_{i,j} \left[ \operatorname{Var}(s_{ij}) - \operatorname{Cov}(f_{ij}, s_{ij}) \right]}
+  {\sum_{i,j} \left[ \operatorname{Var}(f_{ij} - s_{ij}) + (\phi_{ij} - \sigma_{ij})^2 \right]}.
+\]
+This minimizes the risk but depends on unknown population quantities, so we characterize it asymptotically and then estimate it.
+
+\begin{theorem}
+Define
+\[
+  \pi = \sum_{i,j=1}^N \operatorname{AsyVar}\left[ \sqrt{T}\, s_{ij} \right], \qquad
+  \rho = \sum_{i,j=1}^N \operatorname{AsyCov}\left[ \sqrt{T}\, f_{ij}, \sqrt{T}\, s_{ij} \right], \qquad
+  \gamma = \sum_{i,j=1}^N (\phi_{ij} - \sigma_{ij})^2 .
+\]
+Then
+\[
+  \alpha^* = \frac{1}{T} \frac{\pi - \rho}{\gamma} + O\!\left( \frac{1}{T^2} \right).
+\]
+\end{theorem}
+
+The key observation is that $\operatorname{Var}(s_{ij})$, $\operatorname{Cov}(f_{ij}, s_{ij})$ and $\operatorname{Var}(f_{ij} - s_{ij})$ all shrink like $1/T$; the result follows by standard arguments from the i.i.d.\ and finite fourth moment assumptions. Hence, among intensities of the form $\alpha = \kappa/T$, the optimal constant is $\kappa = (\pi - \rho)/\gamma$, giving the estimator $\frac{\kappa}{T} F + \left( 1 - \frac{\kappa}{T} \right) S$.
+
+\paragraph{Estimating $\kappa$.}
+Since $\kappa$ is unknown, it is estimated entrywise from $\pi = \sum_{i,j} \pi_{ij}$, $\rho = \sum_{i,j} \rho_{ij}$ and $\gamma = \sum_{i,j} \gamma_{ij}$, where $\pi_{ij} = \operatorname{AsyVar}[\sqrt{T}\, s_{ij}]$, $\rho_{ij} = \operatorname{AsyCov}[\sqrt{T}\, f_{ij}, \sqrt{T}\, s_{ij}]$ and $\gamma_{ij} = (\phi_{ij} - \sigma_{ij})^2$.
+
+\begin{lemma}
+A consistent estimator of $\pi_{ij}$ is
+\[
+  p_{ij} = \frac{1}{T} \sum_{t=1}^T \left[ (x_{it} - m_i)(x_{jt} - m_j) - s_{ij} \right]^2,
+\]
+where $m_i$ is the sample mean of stock $i$.
+\end{lemma}
+
+\subsection{Yi's Lemma}
+
+Yi and Zou rewrite the Frobenius risk of an arbitrary estimator $\hat\Sigma = (\hat\sigma_{ij})$ in a form that, unlike $R(\alpha)$ above, can be estimated without bias from the data. The only assumption is that the sample covariance matrix is unbiased, $\mathbb{E} S = \Sigma$. This holds if the mean is known (for example, zero) and $S = \frac{1}{T} X X'$, or if the mean is estimated and the divisor $T-1$ is used; the demeaned $S$ above with divisor $T$ is unbiased only up to the factor $(T-1)/T$. No distributional assumption is needed.
+
+\begin{lemma}[Yi and Zou]\label{lem:yi}
+If $\mathbb{E} S = \Sigma$, then for any estimator $\hat\Sigma$,
+\[
+  \mathbb{E}\|\hat\Sigma - \Sigma\|^2
+  = \mathbb{E}\|\hat\Sigma - S\|^2
+  - \sum_{i,j=1}^N \operatorname{Var}(s_{ij})
+  + 2\sum_{i,j=1}^N \operatorname{Cov}(\hat\sigma_{ij}, s_{ij}).
+\]
+\end{lemma}
+
+\begin{proof}
+Fix an entry $(i,j)$ and write $\hat\sigma$, $s$, $\sigma$ for $\hat\sigma_{ij}$, $s_{ij}$, $\sigma_{ij}$. Adding and subtracting $s$,
+\[
+  (\hat\sigma - \sigma)^2
+  = (\hat\sigma - s)^2 + (s - \sigma)^2 + 2(\hat\sigma - s)(s - \sigma).
+\]
+We take expectations term by term. The first term, $\mathbb{E}(\hat\sigma - s)^2$, is kept as it is. For the second, since $\mathbb{E}s = \sigma$,
+\[
+  \mathbb{E}(s-\sigma)^2 = \mathbb{E}s^2 - 2\sigma\,\mathbb{E}s + \sigma^2 = \mathbb{E}s^2 - (\mathbb{E}s)^2 = \operatorname{Var}(s).
+\]
+For the cross term, distribute:
+\[
+  \mathbb{E}\left[(\hat\sigma - s)(s - \sigma)\right]
+  = \mathbb{E}\left[\hat\sigma(s-\sigma)\right] - \mathbb{E}\left[s(s-\sigma)\right].
+\]
+For any random variables $A$ and $B$,
+\[
+  \operatorname{Cov}(A,B) = \mathbb{E}\left[(A - \mathbb{E}A)(B - \mathbb{E}B)\right]
+  = \mathbb{E}\left[A(B - \mathbb{E}B)\right] - \mathbb{E}A \cdot \mathbb{E}\left[B - \mathbb{E}B\right]
+  = \mathbb{E}\left[A(B - \mathbb{E}B)\right],
+\]
+since $\mathbb{E}[B - \mathbb{E}B] = 0$. Taking $B = s$, so that $\mathbb{E}B = \sigma$, and first $A = \hat\sigma$, then $A = s$,
+\[
+  \mathbb{E}\left[\hat\sigma(s-\sigma)\right] = \operatorname{Cov}(\hat\sigma, s),
+  \qquad
+  \mathbb{E}\left[s(s-\sigma)\right] = \operatorname{Var}(s),
+\]
+so the cross term equals $\operatorname{Cov}(\hat\sigma, s) - \operatorname{Var}(s)$. Combining,
+\[
+  \mathbb{E}(\hat\sigma - \sigma)^2
+  = \mathbb{E}(\hat\sigma - s)^2 + \operatorname{Var}(s) + 2\operatorname{Cov}(\hat\sigma, s) - 2\operatorname{Var}(s)
+  = \mathbb{E}(\hat\sigma - s)^2 - \operatorname{Var}(s) + 2\operatorname{Cov}(\hat\sigma, s).
+\]
+Summing over all $(i,j)$ and using $\sum_{i,j}\mathbb{E}(\hat\sigma_{ij} - s_{ij})^2 = \mathbb{E}\|\hat\Sigma - S\|^2$ gives the lemma.
+\end{proof}
+
+\paragraph{Remark.}
+The identity holds for every estimator $\hat\Sigma$, whatever function of the data it is. All three terms are summed over $(i,j)$; the first sum simply recombines into a Frobenius norm. The estimator enters only through $\mathbb{E}\|\hat\Sigma - S\|^2$ and the covariance term $\sum_{i,j}\operatorname{Cov}(\hat\sigma_{ij}, s_{ij})$, which plays the role of the divergence term in Stein's identity.
