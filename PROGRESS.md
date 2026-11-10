@@ -146,3 +146,9 @@ Draft now = 1 Intro, 2 Lit review, 3 Proofs (LW + Yi), 4 Stein route (νI, Gauss
 4. (~60 min) New §6 Simulations: port fig_sure_vs_risk + fig_compare; ADD the §4 Gaussian-SURE α̂ as an estimator → Gaussian vs distribution-free SURE under N and t₁₀.
 5. (~20 min) Conclusion skeleton + questions for Rosenman (target choice; mean-zero vs T−1; bootstrap for nonlinear target).
 Needs Jack's OK: citing Chen et al. (RBLW/OAS) and Touloumis in §6.
+
+## End-of-session reminders (2026-11-10)
+- Give Jack a VERY high-level summary of the whole roadmap (Stein 4.1 → LW in Stein form → Step 1 expand → Step 2 Stein lemma → Step 3 estimate → §5 distribution-free → §6 sims → port to Overleaf).
+- Possible §4 remark: variance term could be estimated directly by 4th moments (Yi/§5 route) and Stein used only on the target term f_ij (hybrid; unbiased only under normality).
+- Walkthrough paused at §4.4 Step 2.4 (lem:stein-cov); next: apply with h = f_ij (skipping h = s_ij), then Step 3.
+- Port §5/§6 into Overleaf (preamble envs, 3 figure uploads, §4 label + ref fix, Chen et al. citation decision, §3 ledoit2004→2003).
