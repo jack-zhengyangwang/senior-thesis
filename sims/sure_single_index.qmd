@@ -1,0 +1,301 @@
+---
+title: "Exact SURE for Ledoit-Wolf shrinkage toward the single-index target"
+format: html
+editor: visual
+---
+
+```{r Package}
+
+# Load required packages
+library(tidyverse)
+library(MASS)         # for mvrnorm (multivariate normal sampling)
+
+set.seed(2026)
+```
+
+```{r Parameter}
+
+# ---- Model (assumptions of Theorem 1) -------------------------------------
+# market x_0t ~ N(0, sigma00), stocks x_it = b_i * x_0t + e_it,
+# e_t ~ N(0, Psi) independent of the market, known zero mean, T days, N stocks.
+
+N <- 20
+T_days <- 40
+sigma00 <- 1                       # market variance
+b <- runif(N, 0.5, 1.5)            # betas
+d <- runif(N, 0.5, 1.5)            # residual variances
+
+# Residual covariance: stocks in the same group share correlation rho.
+# rho = 0 means the single-index model is exactly right.
+make_psi <- function(rho, d, n_groups = 4) {
+  group <- rep(seq_len(n_groups), length.out = length(d))
+  C <- outer(group, group, "==") * rho
+  diag(C) <- 1
+  sqrt(d) * t(sqrt(d) * C)
+}
+
+Psi <- make_psi(rho = 0.3, d)
+Sigma <- sigma00 * outer(b, b) + Psi
+
+# ---- Simulate one data set -----------------------------------------------
+simulate_returns <- function(T_days, b, sigma00, Psi) {
+  x0 <- rnorm(T_days, 0, sqrt(sigma00))
+  E  <- mvrnorm(n = T_days, mu = rep(0, length(b)), Sigma = Psi)
+  X  <- outer(x0, b) + E
+  list(X = X, x0 = x0)
+}
+
+# ---- Single-index target F -------------------------------------------------
+# off-diagonal f_ij = s_0i s_0j / s_00, diagonal f_ii = s_ii
+single_index_target <- function(X, x0) {
+  T_days <- nrow(X)
+  S   <- crossprod(X) / T_days
+  s00 <- sum(x0^2) / T_days
+  s0  <- as.vector(crossprod(X, x0)) / T_days
+  F   <- outer(s0, s0) / s00
+  diag(F) <- diag(S)
+  list(S = S, F = F, s00 = s00, s0 = s0)
+}
+
+# ---- Shrinkage function ------------------------------------------------------
+shrinkage_function <- function(S, F, alpha) {
+  alpha * F + (1 - alpha) * S
+}
+
+# One sample, and check that it shrinks
+one <- simulate_returns(T_days, b, sigma00, Psi)
+tg  <- single_index_target(one$X, one$x0)
+Sigma_hat <- shrinkage_function(tg$S, tg$F, alpha = 0.5)
+
+round(tg$S[1:4, 1:4], 3)          # sample covariance
+round(tg$F[1:4, 1:4], 3)          # target
+round(Sigma_hat[1:4, 1:4], 3)     # shrunk: halfway between S and F
+
+cat("distance from S to F:        ", sum((tg$S - tg$F)^2), "\n")
+cat("distance from Sigma_hat to F:", sum((Sigma_hat - tg$F)^2), "(= 0.25 x above)\n")
+```
+
+```{r SURE_function}
+
+# SURE(alpha) = alpha^2 ||F - S||^2 + (1 - 2 alpha) sum Varhat(s_ij)
+#               + 2 alpha [ sum_i Varhat(s_ii) + sum_{i != j} Varhat(f_ij) ]
+sure_terms <- function(X, x0) {
+  T_days <- nrow(X); m <- T_days - 1
+  tg <- single_index_target(X, x0)
+  S <- tg$S; F <- tg$F; c00 <- tg$s00; s0 <- tg$s0
+  off <- row(S) != col(S)
+
+  # variance term: unbiased Varhat(s_ij) for every i, j
+  sd <- diag(S)
+  var_s <- ((T_days - 2) * S^2 + T_days * outer(sd, sd)) / ((T_days + 2) * (T_days - 1))
+
+  # covariance term off the diagonal: Cov(f_ij, s_ij) = Var(f_ij), estimated unbiasedly
+  bh  <- s0 / c00                                    # sample betas
+  P   <- (S - outer(s0, s0) / c00) * T_days / m      # unbiased residual covariance
+  p   <- diag(P); bb2 <- bh^2
+  Bh  <- (m * (m - 2) * P^2 + m^2 * outer(p, p)) / ((m + 2) * (m - 1))
+  Bh2 <- (2 * m * P^2 + m * outer(p, p)) / (m + 2)
+  Ah  <- outer(bb2, p) + outer(p, bb2) + 2 * outer(bh, bh) * P
+  Ah2 <- outer(bb2, p) + outer(p, bb2) + 4 * outer(bh, bh) * P
+  est_sA  <- c00 * Ah - 2 * Bh / T_days
+  est_s2b <- (c00^2 * outer(bb2, bb2) - c00 * Ah2 / T_days + Bh2 / T_days^2) / (1 + 2 / T_days)
+  var_f   <- est_sA / T_days + 2 * est_s2b / T_days + Bh / T_days^2
+
+  list(D2 = sum((F - S)^2),                         # ||F - S||^2
+       V  = sum(var_s),                             # sum_ij Varhat(s_ij)
+       Cv = sum(diag(var_s)) + sum(var_f[off]),     # sum_ij Covhat(f_ij, s_ij)
+       S = S, F = F)
+}
+
+sure_value <- function(terms, alpha) {
+  alpha^2 * terms$D2 + (1 - 2 * alpha) * terms$V + 2 * alpha * terms$Cv
+}
+
+# SURE-chosen alpha: minimizer of the quadratic, kept in [0, 1]
+sure_alpha <- function(terms) {
+  min(max((terms$V - terms$Cv) / terms$D2, 0), 1)
+}
+
+st <- sure_terms(one$X, one$x0)
+cat("SURE at alpha = 0.5:", sure_value(st, 0.5), "\n")
+cat("SURE-chosen alpha:  ", sure_alpha(st), "\n")
+```
+
+```{r Expectation}
+
+# Closed-form true risk R(alpha) = E||alpha F + (1 - alpha) S - Sigma||^2 under the model
+true_risk <- function(alpha, b, sigma00, Psi, T_days) {
+  Sigma <- sigma00 * outer(b, b) + Psi
+  off <- row(Psi) != col(Psi)
+  dP <- diag(Psi)
+  m <- T_days - 1
+
+  var_sum <- (sum(Sigma^2) + sum(diag(Sigma))^2) / T_days            # sum Var(s_ij)
+
+  A  <- outer(b^2, dP) + outer(dP, b^2) + 2 * outer(b, b) * Psi
+  B  <- outer(dP, dP) + Psi^2
+  Vf <- (sigma00 * A + 2 * outer(b^2, b^2) * sigma00^2) / T_days + B / T_days^2
+  cov_sum <- sum(2 * diag(Sigma)^2 / T_days) + sum(Vf[off])          # sum Cov(f_ij, s_ij)
+
+  EFS <- sum(((m^2 * Psi^2 + m * (Psi^2 + outer(dP, dP))) / T_days^2)[off])  # E||F - S||^2
+
+  alpha^2 * EFS + (1 - 2 * alpha) * var_sum + 2 * alpha * cov_sum
+}
+
+oracle_alpha <- function(b, sigma00, Psi, T_days) {
+  r0 <- true_risk(0, b, sigma00, Psi, T_days)
+  r1 <- true_risk(1, b, sigma00, Psi, T_days)
+  rh <- true_risk(0.5, b, sigma00, Psi, T_days)
+  # R is quadratic: R(a) = r0 + c1 a + c2 a^2
+  c2 <- 2 * (r1 + r0 - 2 * rh); c1 <- r1 - r0 - c2
+  min(max(-c1 / (2 * c2), 0), 1)
+}
+
+cat("True risk at alpha = 0.5:", true_risk(0.5, b, sigma00, Psi, T_days), "\n")
+cat("Oracle alpha:            ", oracle_alpha(b, sigma00, Psi, T_days), "\n")
+```
+
+```{r Iteration_one_setting}
+
+# Empirical check at one setting: average true loss vs average SURE vs closed-form risk
+n <- 20000
+alpha <- 0.5
+total_error <- 0
+total_sure  <- 0
+
+for (i in seq_len(n)) {
+  sim <- simulate_returns(T_days, b, sigma00, Psi)
+  st  <- sure_terms(sim$X, sim$x0)
+  Sigma_hat <- shrinkage_function(st$S, st$F, alpha)
+  total_error <- total_error + sum((Sigma_hat - Sigma)^2)
+  total_sure  <- total_sure + sure_value(st, alpha)
+}
+
+cat(total_error / n, "is the empirical risk (average loss)\n")
+cat(total_sure / n,  "is the average SURE\n")
+cat(true_risk(alpha, b, sigma00, Psi, T_days), "is the closed-form risk\n")
+
+rm(sim, st, Sigma_hat, i, total_error, total_sure)
+```
+
+```{r Iteration_over_alpha}
+
+# Risk curve over alpha at one setting: closed form vs empirical vs average SURE
+alphas <- seq(0, 1, by = 0.05)
+n_samples <- 20000
+loss_sum <- numeric(length(alphas))
+sure_sum <- numeric(length(alphas))
+
+for (i in seq_len(n_samples)) {
+  sim <- simulate_returns(T_days, b, sigma00, Psi)
+  st  <- sure_terms(sim$X, sim$x0)
+  for (k in seq_along(alphas)) {
+    loss_sum[k] <- loss_sum[k] + sum((shrinkage_function(st$S, st$F, alphas[k]) - Sigma)^2)
+    sure_sum[k] <- sure_sum[k] + sure_value(st, alphas[k])
+  }
+}
+
+Curve <- tibble(alpha = alphas,
+                Expected_error  = true_risk(alphas, b, sigma00, Psi, T_days),
+                Empirical_Error = loss_sum / n_samples,
+                Average_SURE    = sure_sum / n_samples)
+rm(sim, st, i, k, loss_sum, sure_sum)
+
+Curve
+
+Curve |>
+  pivot_longer(-alpha, names_to = "Quantity", values_to = "Risk") |>
+  ggplot(aes(x = alpha, y = Risk, color = Quantity, linetype = Quantity)) +
+    geom_line(linewidth = 1) +
+    scale_color_manual(values = c(Expected_error = "#0b0b0b",
+                                  Empirical_Error = "#eb6834",
+                                  Average_SURE = "#2a78d6")) +
+    labs(title = "Risk over the shrinkage intensity",
+         x = "Shrinkage intensity alpha", y = "Frobenius risk") +
+    theme_minimal()
+ggsave("out/sure_risk_over_alpha.png", width = 7, height = 4, dpi = 160)
+```
+
+```{r Iteration_over_misspecification}
+
+# Performance curve: loop over how far the truth is from the single-index model
+# (the analogue of the magnitude of the mean in the James-Stein experiment)
+rhos <- seq(0, 0.6, by = 0.1)
+n_samples <- 10000
+Performance <- tibble()
+
+for (rho in rhos) {
+  Psi_r   <- make_psi(rho, d)
+  Sigma_r <- sigma00 * outer(b, b) + Psi_r
+  gamma   <- sum(Psi_r[row(Psi_r) != col(Psi_r)]^2)   # distance of truth from the target's structure
+  a_star  <- oracle_alpha(b, sigma00, Psi_r, T_days)
+  loss_sure <- 0
+  total_error <- 0
+  total_sure  <- 0
+
+  for (i in seq_len(n_samples)) {
+    sim <- simulate_returns(T_days, b, sigma00, Psi_r)
+    st  <- sure_terms(sim$X, sim$x0)
+    loss_sure   <- loss_sure + sum((shrinkage_function(st$S, st$F, sure_alpha(st)) - Sigma_r)^2)
+    total_error <- total_error + sum((shrinkage_function(st$S, st$F, a_star) - Sigma_r)^2)
+    total_sure  <- total_sure + sure_value(st, a_star)
+  }
+
+  Performance <- bind_rows(Performance, tibble(
+    rho = rho,
+    Misspecification = gamma,
+    Risk_S = true_risk(0, b, sigma00, Psi_r, T_days),
+    Risk_F = true_risk(1, b, sigma00, Psi_r, T_days),
+    Risk_oracle = true_risk(a_star, b, sigma00, Psi_r, T_days),
+    Risk_SURE_tuned = loss_sure / n_samples,
+    Expected_error = true_risk(a_star, b, sigma00, Psi_r, T_days),
+    Empirical_Error = total_error / n_samples,
+    Average_SURE = total_sure / n_samples))
+}
+rm(sim, st, i, rho, Psi_r, Sigma_r, gamma, a_star, loss_sure, total_error, total_sure)
+
+Performance
+```
+
+```{r}
+# Analysis: does SURE track the expected error at every setting?
+
+Performance |>
+  mutate(SURE_Diff = Average_SURE - Expected_error,
+         Empirical_Diff = Empirical_Error - Expected_error) |>
+  pivot_longer(c(SURE_Diff, Empirical_Diff), names_to = "Comparison", values_to = "Diff") |>
+  ggplot(aes(x = Misspecification, y = Diff, color = Comparison)) +
+    geom_point(size = 3) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray") +
+    scale_color_manual(values = c(SURE_Diff = "#2a78d6", Empirical_Diff = "#eb6834")) +
+    labs(title = "Difference from the closed-form risk vs misspecification",
+         x = "Misspecification (sum of squared residual covariances)",
+         y = "Difference from expected error") +
+    theme_minimal()
+ggsave("out/sure_diff_vs_misspec.png", width = 7, height = 4, dpi = 160)
+```
+
+```{r}
+# Performance curve: risk vs how far the truth is from the target
+
+Performance |>
+  dplyr::select(Misspecification, Risk_S, Risk_F, Risk_oracle, Risk_SURE_tuned) |>
+  pivot_longer(-Misspecification, names_to = "Estimator", values_to = "Risk") |>
+  mutate(Estimator = recode(Estimator,
+                            Risk_S = "Sample covariance S",
+                            Risk_F = "Target F",
+                            Risk_oracle = "Oracle alpha",
+                            Risk_SURE_tuned = "SURE-chosen alpha")) |>
+  ggplot(aes(x = Misspecification, y = Risk, color = Estimator)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    scale_color_manual(values = c("Sample covariance S" = "#eb6834",
+                                  "Target F" = "#1baf7a",
+                                  "Oracle alpha" = "#0b0b0b",
+                                  "SURE-chosen alpha" = "#2a78d6")) +
+    labs(title = "Performance curve",
+         x = "Misspecification (sum of squared residual covariances)",
+         y = "Frobenius risk (MSE)") +
+    theme_minimal()
+ggsave("out/sure_performance_curve.png", width = 7, height = 4, dpi = 160)
+```
