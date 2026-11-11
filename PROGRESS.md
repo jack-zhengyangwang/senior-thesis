@@ -184,3 +184,4 @@ Needs Jack's OK: citing Chen et al. (RBLW/OAS) and Touloumis in §6.
 - 2026-11-10: Cov(f_ij,s_ij)=Var(f_ij) (i≠j) via IK Lemma A.2 — MC confirmed (sims/check_cov_equals_var.py).
 - Var(f_ij) = [σ00·A + 2 b_i² b_j² σ00²]/T + B/T², A = b_i²Ψ_jj + b_j²Ψ_ii + 2b_ib_jΨ_ij, B = Ψ_iiΨ_jj + Ψ_ij².
 - Unbiased estimator V̂ built from c=s00, b̂=s0/s00, Ψ̃ = T/(T−1)·(S − s0 s0ᵀ/s00); MC unbiased at T=10,20,60 (sims/check_var_f_estimator.py). Needs a written proof.
+- END-TO-END CHECK PASSED (sims/sim_sure_single_index.py, N=20, T=40, 60k reps): E[SURE(α)] = R(α) at every α within 2 s.e. (diffs −0.03…−0.09 vs 2se≈0.40, risk≈58–62). Curves: sims/out/sure_single_index_curves.{png,pdf}. True-curve argmin α=0.575; SURE-chosen α mean 0.592 (sd 0.084). Individual SURE curves vary mostly in level, less in minimizer.
