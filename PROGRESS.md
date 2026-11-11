@@ -166,3 +166,5 @@ Needs Jack's OK: citing Chen et al. (RBLW/OAS) and Touloumis in §6.
 - Overleaf biblio.bib: added the 8 entries (thesis/added_refs.bib).
 - Overleaf §2: "Stein (1956)" -> \citet{stein1956}; new opening paragraph of §2.2 on Haff (1980) (+ \citep{haff1979}).
 - Overleaf outline (headings only) added: §5 Methods for Estimating the Risk Terms, §6 Empirical Comparison, §7 Relaxing the Assumptions, §8 Conclusion. [literature]/[proposed] tags are % comments. Compiles: 0 errors, 0 warnings, 15 pp.
+- Intro (Overleaf): grammar fixes + approved word choices; research question sentence ("by following Stein's approach to risk estimation, rather than Ledoit and Wolf's asymptotic formula, can we obtain an unbiased, finite-sample estimate of the risk of linear shrinkage, tracing out its performance curve and choosing the shrinkage intensity that minimizes it?"); bridge sentence on LW's N-fixed asymptotics before it. Stein 1956 cited (was mis-cited as 1981).
+- Placeholders (\textit{[Placeholder: ...]}) added: intro findings/roadmap paragraph + every §5–§8 heading. Still open intro items: 1/N + Michaud citations (not in bib), split paragraph 1, trim overlap with §2.1.
