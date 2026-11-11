@@ -174,3 +174,9 @@ Needs Jack's OK: citing Chen et al. (RBLW/OAS) and Touloumis in §6.
 - Michaud 1989 dropped (Jack: obvious); intro now \citep{ledoit2003} only; michaud1989 removed from bib.
 - §2.2 rewritten around "how Stein maps to matrices" (S plays X, F plays the fixed point); Haff compressed; LW2003 tightened (removed unverified "seven competing estimators"); added 1-sentence LW2004 (identity target, N and T grow together).
 - Intro bridge sentence corrected: LW asymptotics are N fixed (2003) OR N,T together (2004) — old wording ("N held fixed") was wrong for LW2004.
+
+## 2026-11-10 (late night): novelty check + new direction
+- 3 lit agents (reports in lit_review/). Closest prior work: Ikeda & Kubokawa (2016, JMVA 152:61–81; working paper papers/Ikeda-Kubokawa2015_workingpaper.pdf, highlighted Lemma 2.1, eq 2.16, Thm 3.1, Lemma A.2). Their factor target = LW2003 single-index (our inference); Wishart independence (Lemma A.2) removes the ratio problem; α* is O(1/n) approx, not exact SURE.
+- DECISION (Jack): build thesis around Theorem 1 = exact SURE for single-index target under iid normality; attempt Theorem 2 = serially correlated Gaussian returns. Don't pitch "Stein relaxes normality".
+- Overleaf restructured: new §2.4 Finite-Sample Shrinkage Intensities, §2.5 Dependence and Non-Normality, §4 new subsection (Proposition: LW2004 dropped term ≤ 2/N of variance term), §4.6 renamed "Why the direct route stalls…"; §5 Exact SURE single-index, §6 Serially Correlated Returns, §7 Numerical Results, §8 Discussion and Conclusion. Old methods list -> benchmarks in §7.3. Compiles 0 errors.
+- TODO: add ikeda2016 to biblio.bib after Jack reads it; check published JMVA version; pull Schäfer–Strimmer 2005, Canu–Fourdrinier 2017, Kwan 2008.
