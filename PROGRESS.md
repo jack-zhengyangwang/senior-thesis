@@ -160,3 +160,9 @@ Needs Jack's OK: citing Chen et al. (RBLW/OAS) and Touloumis in §6.
 - NEW §7 = relaxing assumptions (Wishart = normality, gives Stein–Haff tools; elliptical, unknown mean, time dependence).
 - Citations: anything in Overleaf biblio.bib (ledoit2003/2004, stein1981, sharpe1963, yi2013). Others pending Jack's skim (papers being pulled to papers/).
 - Overleaf fixed today: Yi identity LaTeX, §2.1 contradiction + d/p + norms, intro target T→F single-index, §2.2 p/δ→N/α, §3.1 cite 2003 + mean-zero S, §4.3 explicit link to Yi's lemma. "Stein (1956)" still plain text (not in bib).
+
+## 2026-11-10 (night): bib + §2 + outline in Overleaf
+- Papers: all 8 candidates now in papers/ (Stein1956, Haff1979, Haff1980, Kubokawa-Srivastava1999, Efron2004, Landsman-Neslehova2008, Himeno-Yamada2013_techreport, Ollila-Raninen2019). Desktop/Thesis duplicates sent to Trash.
+- Overleaf biblio.bib: added the 8 entries (thesis/added_refs.bib).
+- Overleaf §2: "Stein (1956)" -> \citet{stein1956}; new opening paragraph of §2.2 on Haff (1980) (+ \citep{haff1979}).
+- Overleaf outline (headings only) added: §5 Methods for Estimating the Risk Terms, §6 Empirical Comparison, §7 Relaxing the Assumptions, §8 Conclusion. [literature]/[proposed] tags are % comments. Compiles: 0 errors, 0 warnings, 15 pp.
