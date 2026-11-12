@@ -1,0 +1,224 @@
+---
+title: "SURE for Ledoit-Wolf shrinkage: fixed target (Level 0) and scaled identity (Level 1)"
+format: html
+editor: visual
+---
+
+```{r Package}
+
+# Load required packages
+library(tidyverse)
+library(MASS)         # for mvrnorm (multivariate normal sampling)
+
+set.seed(2026)
+```
+
+```{r Parameter}
+
+# ---- Model -----------------------------------------------------------------
+# Daily return vectors x_t ~ N(0, Sigma), i.i.d., known zero mean, T days, N stocks.
+# No market series is needed: neither target uses it.
+
+N <- 20
+T_days <- 40
+b <- runif(N, 0.5, 1.5)            # loadings for the structured part
+d <- runif(N, 0.5, 1.5)            # variances for the structured part
+
+# Family of true covariances: c = 0 gives Sigma = I (both targets exactly right),
+# larger c moves Sigma away from I toward a structured matrix G.
+G <- 0.5 * outer(b, b) + diag(d)
+make_sigma <- function(c) (1 - c) * diag(N) + c * G
+
+Sigma <- make_sigma(0.5)
+
+# ---- Simulate one data set -----------------------------------------------
+simulate_returns <- function(T_days, Sigma) {
+  mvrnorm(n = T_days, mu = rep(0, nrow(Sigma)), Sigma = Sigma)
+}
+
+# ---- Targets ---------------------------------------------------------------
+# Level 0: a fixed target chosen before seeing the data (the identity)
+fixed_target <- function(S) diag(nrow(S))
+
+# Level 1: scaled identity nu * I with nu = tr(S) / N
+scaled_target <- function(S) (sum(diag(S)) / nrow(S)) * diag(nrow(S))
+
+# ---- Shrinkage function ------------------------------------------------------
+shrinkage_function <- function(S, F, alpha) {
+  alpha * F + (1 - alpha) * S
+}
+
+# One sample, and check that it shrinks
+X <- simulate_returns(T_days, Sigma)
+S <- crossprod(X) / T_days
+F1 <- scaled_target(S)
+Sigma_hat <- shrinkage_function(S, F1, alpha = 0.5)
+round(S[1:4, 1:4], 3)             # sample covariance
+round(F1[1:4, 1:4], 3)            # scaled-identity target
+round(Sigma_hat[1:4, 1:4], 3)     # shrunk: halfway between S and F
+rm(X, S, F1, Sigma_hat)
+```
+
+```{r SURE_function}
+
+# Unbiased estimates shared by both levels (Section 4, Step 3)
+#   Vhat = sum_ij Varhat(s_ij) = [T (tr S)^2 + (T - 2) tr(S^2)] / [(T + 2)(T - 1)]
+#   bhat = unbiased estimate of tr(Sigma^2) = T [T tr(S^2) - (tr S)^2] / [(T + 2)(T - 1)]
+sure_terms <- function(X, level) {
+  T_days <- nrow(X); N <- ncol(X)
+  S <- crossprod(X) / T_days
+  trS <- sum(diag(S)); trS2 <- sum(S^2)
+  V  <- (T_days * trS^2 + (T_days - 2) * trS2) / ((T_days + 2) * (T_days - 1))
+  bh <- T_days * (T_days * trS2 - trS^2) / ((T_days + 2) * (T_days - 1))
+  if (level == 0) {
+    F  <- fixed_target(S)
+    Cv <- 0                                   # Level 0: Cov(f_ij, s_ij) = 0
+  } else {
+    F  <- scaled_target(S)
+    Cv <- 2 * bh / (N * T_days)               # Level 1: estimate of 2 tr(Sigma^2) / (N T)
+  }
+  list(D2 = sum((F - S)^2), V = V, Cv = Cv, S = S, F = F)
+}
+
+sure_value <- function(terms, alpha) {
+  alpha^2 * terms$D2 + (1 - 2 * alpha) * terms$V + 2 * alpha * terms$Cv
+}
+
+# SURE-chosen alpha: minimizer of the quadratic, kept in [0, 1]
+sure_alpha <- function(terms) {
+  min(max((terms$V - terms$Cv) / terms$D2, 0), 1)
+}
+```
+
+```{r Expectation}
+
+# Closed-form true risk R(alpha) = E||alpha F + (1 - alpha) S - Sigma||^2
+true_risk <- function(alpha, Sigma, T_days, level) {
+  N <- nrow(Sigma)
+  trS <- sum(diag(Sigma)); trS2 <- sum(Sigma^2)
+  V <- (trS^2 + trS2) / T_days                                    # sum Var(s_ij)
+  if (level == 0) {
+    C   <- 0
+    EFS <- sum((diag(N) - Sigma)^2) + V                           # E||I - S||^2
+  } else {
+    C   <- 2 * trS2 / (N * T_days)                                # sum Cov(f_ij, s_ij)
+    EFS <- trS2 + V - trS^2 / N - 2 * trS2 / (N * T_days)         # E||nu I - S||^2
+  }
+  alpha^2 * EFS + (1 - 2 * alpha) * V + 2 * alpha * C
+}
+
+oracle_alpha <- function(Sigma, T_days, level) {
+  r0 <- true_risk(0, Sigma, T_days, level)
+  r1 <- true_risk(1, Sigma, T_days, level)
+  rh <- true_risk(0.5, Sigma, T_days, level)
+  c2 <- 2 * (r1 + r0 - 2 * rh); c1 <- r1 - r0 - c2
+  min(max(-c1 / (2 * c2), 0), 1)
+}
+
+# Distance of the truth from the target's structure (the x-axis)
+misspecification <- function(Sigma, level) {
+  N <- nrow(Sigma)
+  if (level == 0) sum((Sigma - diag(N))^2)
+  else sum((Sigma - (sum(diag(Sigma)) / N) * diag(N))^2)
+}
+```
+
+```{r Iteration_one_setting}
+
+# Empirical check at one setting: average true loss vs average SURE vs closed-form risk
+n <- 20000
+alpha <- 0.5
+for (level in c(0, 1)) {
+  total_error <- 0; total_sure <- 0
+  for (i in seq_len(n)) {
+    st <- sure_terms(simulate_returns(T_days, Sigma), level)
+    total_error <- total_error + sum((shrinkage_function(st$S, st$F, alpha) - Sigma)^2)
+    total_sure  <- total_sure + sure_value(st, alpha)
+  }
+  cat("Level", level, ": empirical", round(total_error / n, 4),
+      " average SURE", round(total_sure / n, 4),
+      " closed form", round(true_risk(alpha, Sigma, T_days, level), 4), "\n")
+}
+rm(level, i, st, total_error, total_sure)
+```
+
+```{r Iteration_over_misspecification}
+
+# Performance curve: loop over how far the truth is from the target
+cs <- seq(0, 1, by = 1/6)
+n_samples <- 5000
+Performance <- tibble()
+
+for (level in c(0, 1)) {
+  for (c in cs) {
+    Sigma_c <- make_sigma(c)
+    a_star  <- oracle_alpha(Sigma_c, T_days, level)
+    loss_sure <- 0; total_error <- 0; total_sure <- 0
+    for (i in seq_len(n_samples)) {
+      st <- sure_terms(simulate_returns(T_days, Sigma_c), level)
+      loss_sure   <- loss_sure + sum((shrinkage_function(st$S, st$F, sure_alpha(st)) - Sigma_c)^2)
+      total_error <- total_error + sum((shrinkage_function(st$S, st$F, a_star) - Sigma_c)^2)
+      total_sure  <- total_sure + sure_value(st, a_star)
+    }
+    Performance <- bind_rows(Performance, tibble(
+      Level = ifelse(level == 0, "Level 0: fixed target I", "Level 1: scaled identity"),
+      c = c,
+      Misspecification = misspecification(Sigma_c, level),
+      Risk_S = true_risk(0, Sigma_c, T_days, level),
+      Risk_F = true_risk(1, Sigma_c, T_days, level),
+      Risk_oracle = true_risk(a_star, Sigma_c, T_days, level),
+      Risk_SURE_tuned = loss_sure / n_samples,
+      Expected_error = true_risk(a_star, Sigma_c, T_days, level),
+      Empirical_Error = total_error / n_samples,
+      Average_SURE = total_sure / n_samples))
+  }
+}
+rm(level, c, Sigma_c, a_star, loss_sure, total_error, total_sure, i, st)
+
+Performance
+```
+
+```{r}
+# Analysis: does SURE track the expected error at every setting?
+
+Performance |>
+  mutate(SURE_Diff = Average_SURE - Expected_error,
+         Empirical_Diff = Empirical_Error - Expected_error) |>
+  pivot_longer(c(SURE_Diff, Empirical_Diff), names_to = "Comparison", values_to = "Diff") |>
+  ggplot(aes(x = Misspecification, y = Diff, color = Comparison)) +
+    geom_point(size = 3) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "gray") +
+    facet_wrap(~ Level, scales = "free_x") +
+    scale_color_manual(values = c(SURE_Diff = "#2a78d6", Empirical_Diff = "#eb6834")) +
+    labs(title = "Difference from the closed-form risk vs misspecification",
+         x = "Misspecification (squared distance of Sigma from the target's structure)",
+         y = "Difference from expected error") +
+    theme_minimal()
+ggsave("out/levels01_diff_vs_misspec.png", width = 9, height = 4, dpi = 160)
+```
+
+```{r}
+# Performance curve: risk vs how far the truth is from the target
+
+Performance |>
+  dplyr::select(Level, Misspecification, Risk_S, Risk_F, Risk_oracle, Risk_SURE_tuned) |>
+  pivot_longer(-c(Level, Misspecification), names_to = "Estimator", values_to = "Risk") |>
+  mutate(Estimator = recode(Estimator,
+                            Risk_S = "Sample covariance S",
+                            Risk_F = "Target F",
+                            Risk_oracle = "Oracle alpha",
+                            Risk_SURE_tuned = "SURE-chosen alpha")) |>
+  ggplot(aes(x = Misspecification, y = Risk, color = Estimator)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    facet_wrap(~ Level, scales = "free") +
+    scale_color_manual(values = c("Sample covariance S" = "#eb6834",
+                                  "Target F" = "#1baf7a",
+                                  "Oracle alpha" = "#0b0b0b",
+                                  "SURE-chosen alpha" = "#2a78d6")) +
+    labs(title = "Performance curves",
+         x = "Misspecification (squared distance of Sigma from the target's structure)",
+         y = "Frobenius risk (MSE)") +
+    theme_minimal()
+ggsave("out/levels01_performance_curve.png", width = 9, height = 4, dpi = 160)
+```
