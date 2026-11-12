@@ -20,9 +20,9 @@ Every day then has the same covariance matrix $\Sigma = \sigma_{00}\beta\beta' +
   \item First-order autoregressive dependence: $A_{st} = \phi^{|s-t|}$.
 \end{itemize}
 
-Because $A_{tt} = 1$, $\operatorname{tr} A = T$ and $\mathbb{E} S = \Sigma$. Yi's identity therefore holds unchanged:
+Because $A_{tt} = 1$, $\operatorname{tr} A = T$ and $\mathbb{E}[S] = \Sigma$. Yi's identity therefore holds unchanged:
 \[
-  R(\alpha) = \alpha^2\, \mathbb{E}\|F - S\|^2 + (1 - 2\alpha) \sum_{i,j} \operatorname{Var}(s_{ij}) + 2\alpha \sum_{i,j} \operatorname{Cov}(f_{ij}, s_{ij}).
+  R(\alpha) = \alpha^2\, \mathbb{E}[\|F - S\|^2] + (1 - 2\alpha) \sum_{i,j} \operatorname{Var}(s_{ij}) + 2\alpha \sum_{i,j} \operatorname{Cov}(f_{ij}, s_{ij}).
 \]
 The task is again to estimate the two sums without bias.
 
