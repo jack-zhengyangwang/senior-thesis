@@ -222,3 +222,89 @@ Performance |>
     theme_minimal()
 ggsave("out/levels01_performance_curve.png", width = 9, height = 4, dpi = 160)
 ```
+
+```{r Level0_SRP_style}
+
+# ---- Level 0 in the style of the James-Stein experiment ---------------------
+# With the fixed target I, the risk depends on Sigma only through its eigenvalues
+# (rotating the data leaves I unchanged), just as the James-Stein risk depends on theta only
+# through ||theta||. So we use a spiked covariance Sigma = I + delta * v v':
+# one eigenvalue 1 + delta (a market factor), the rest equal to 1.
+# x-axis: delta = ||Sigma - I||_F, the distance from the target (the analogue of ||theta||).
+# One curve per dimension N, as with different p in the James-Stein experiment.
+
+dims   <- c(5, 10, 20, 50)
+deltas <- 0:10
+n_samples <- 3000
+Spike <- tibble()
+
+for (N_k in dims) {
+  for (delta in deltas) {
+    Sigma_k <- diag(N_k); Sigma_k[1, 1] <- 1 + delta        # v = first coordinate (direction does not matter)
+    a_star  <- oracle_alpha(Sigma_k, T_days, level = 0)
+    loss_sure <- 0; total_sure <- 0
+    for (i in seq_len(n_samples)) {
+      X  <- matrix(rnorm(T_days * N_k), T_days, N_k)
+      X[, 1] <- X[, 1] * sqrt(1 + delta)
+      st <- sure_terms(X, level = 0)
+      loss_sure  <- loss_sure + sum((shrinkage_function(st$S, st$F, sure_alpha(st)) - Sigma_k)^2)
+      total_sure <- total_sure + sure_value(st, a_star)
+    }
+    Spike <- bind_rows(Spike, tibble(
+      N = N_k, delta = delta,
+      Risk_S = true_risk(0, Sigma_k, T_days, 0),
+      Risk_F = true_risk(1, Sigma_k, T_days, 0),
+      Risk_oracle = true_risk(a_star, Sigma_k, T_days, 0),
+      Risk_SURE_tuned = loss_sure / n_samples,
+      Average_SURE = total_sure / n_samples))
+  }
+}
+rm(N_k, delta, Sigma_k, a_star, loss_sure, total_sure, i, X, st)
+
+Spike
+```
+
+```{r}
+# Performance curves by dimension: risk vs distance from the target
+
+Spike |>
+  dplyr::select(N, delta, Risk_S, Risk_F, Risk_oracle, Risk_SURE_tuned) |>
+  pivot_longer(-c(N, delta), names_to = "Estimator", values_to = "Risk") |>
+  mutate(Estimator = recode(Estimator,
+                            Risk_S = "Sample covariance S",
+                            Risk_F = "Target I",
+                            Risk_oracle = "Oracle alpha",
+                            Risk_SURE_tuned = "SURE-chosen alpha"),
+         N = paste("N =", N) |> fct_inorder()) |>
+  ggplot(aes(x = delta, y = Risk, color = Estimator)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 1.5) +
+    facet_wrap(~ N, nrow = 1, scales = "free_y") +
+    scale_color_manual(values = c("Sample covariance S" = "#eb6834",
+                                  "Target I" = "#1baf7a",
+                                  "Oracle alpha" = "#0b0b0b",
+                                  "SURE-chosen alpha" = "#2a78d6")) +
+    labs(title = "Level 0 (fixed target I): performance curves by dimension",
+         x = "Distance from the target, ||Sigma - I||_F (spike size delta)",
+         y = "Frobenius risk (MSE)") +
+    theme_minimal() + theme(legend.position = "bottom")
+ggsave("out/level0_performance_by_dim.png", width = 11, height = 4, dpi = 160)
+```
+
+```{r}
+# Relative risk of SURE-chosen shrinkage vs the sample covariance, one line per dimension
+# (below 1 = shrinkage helps), as in the James-Stein risk-ratio plot
+
+Spike |>
+  mutate(Ratio = Risk_SURE_tuned / Risk_S, N = factor(N)) |>
+  ggplot(aes(x = delta, y = Ratio, color = N)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 1.5) +
+    geom_hline(yintercept = 1, linetype = "dashed", color = "gray") +
+    scale_color_manual(values = c("5" = "#9ec5f4", "10" = "#5b9be6", "20" = "#2a78d6", "50" = "#0d3f80")) +
+    labs(title = "Level 0: risk of SURE-chosen shrinkage relative to S",
+         x = "Distance from the target, ||Sigma - I||_F (spike size delta)",
+         y = "Risk ratio (SURE-chosen / S)", color = "Dimension N") +
+    theme_minimal()
+ggsave("out/level0_risk_ratio_by_dim.png", width = 7, height = 4, dpi = 160)
+```
