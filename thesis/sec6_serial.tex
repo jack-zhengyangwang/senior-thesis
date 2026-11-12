@@ -1,0 +1,163 @@
+\section{Serially Correlated Returns}\label{sec:thm2}
+
+Ledoit and Wolf assume that returns are independent and identically distributed through time \citep[Assumption~1]{ledoit2003}, and so does the exact result of Section~\ref{sec:thm1}. This section drops independence across days. Returns may be correlated from one day to the next, as long as the pattern of that correlation is known and is the same for every series. The leading example is overlapping returns: weekly returns sampled every day share four of their five days, so neighbouring observations are correlated by construction, with a pattern fixed by the overlap. Theorem~\ref{thm:serial} gives an exactly unbiased risk estimate in this setting, for every finite $N$ and $T \geq 3$.
+
+\subsection{Model}
+
+Write $x_0 = (x_{01}, \dots, x_{0T})'$ for the $T$ market returns, $x_i = (x_{i1}, \dots, x_{iT})'$ for the $T$ returns on stock $i$, and $\varepsilon_i$ for its residual series.
+
+\paragraph{Assumption 2.}
+\begin{enumerate}
+  \item[(a)] $x_0 \sim N_T(0, \sigma_{00} A)$.
+  \item[(b)] $x_i = \beta_i x_0 + \varepsilon_i$ for $i = 1, \dots, N$.
+  \item[(c)] The residuals are jointly normal with mean zero, independent of $x_0$, and $\operatorname{Cov}(\varepsilon_{is}, \varepsilon_{jt}) = \psi_{ij} A_{st}$, where $\Psi = (\psi_{ij})$ is positive definite.
+  \item[(d)] $A$ is a known positive definite $T \times T$ matrix with ones on the diagonal, and $T \geq 3$.
+\end{enumerate}
+
+Every day then has the same covariance matrix $\Sigma = \sigma_{00}\beta\beta' + \Psi$, and the cross-day covariances are $\operatorname{Cov}(x_{is}, x_{jt}) = \sigma_{ij} A_{st}$. The matrix $A$ describes how days are related; the same $A$ applies to every series. Setting $A = I_T$ gives back the i.i.d.\ model of Section~\ref{sec:thm1}. Two examples:
+\begin{itemize}
+  \item Overlapping $k$-period returns built from i.i.d.\ one-period returns: $A_{st} = \max(k - |s - t|, 0)/k$. Here $A$ is known exactly once $k$ is chosen.
+  \item First-order autoregressive dependence: $A_{st} = \phi^{|s-t|}$.
+\end{itemize}
+
+Because $A_{tt} = 1$, $\operatorname{tr} A = T$ and $\mathbb{E} S = \Sigma$. Yi's identity therefore holds unchanged:
+\[
+  R(\alpha) = \alpha^2\, \mathbb{E}\|F - S\|^2 + (1 - 2\alpha) \sum_{i,j} \operatorname{Var}(s_{ij}) + 2\alpha \sum_{i,j} \operatorname{Cov}(f_{ij}, s_{ij}).
+\]
+The task is again to estimate the two sums without bias.
+
+\subsection{What survives and what breaks}
+
+\begin{itemize}
+  \item \emph{Survives:} Yi's identity; the regression decomposition $s_{ij} = f_{ij} + (\text{residual part})$, which is algebra.
+  \item \emph{Changes:} $\operatorname{Var}(s_{ij})$. The factor $1/T$ becomes $\operatorname{tr}(A^2)/T^2$, so $T$ is replaced by an effective sample size $T^2/\operatorname{tr}(A^2) \leq T$.
+  \item \emph{Breaks:} the independence of the regression part and the residual part used in Section~\ref{sec:thm1}. With correlated days the residual cross-product matrix is no longer Wishart and is correlated with the fitted part, so $\operatorname{Cov}(f_{ij}, s_{ij}) \neq \operatorname{Var}(f_{ij})$ in general.
+\end{itemize}
+
+We therefore estimate the covariance directly from $\operatorname{Cov}(f_{ij}, s_{ij}) = \mathbb{E}[f_{ij}s_{ij}] - \mathbb{E}[f_{ij}]\,\sigma_{ij}$. The first term is estimated by $f_{ij}s_{ij}$ itself. All of the work is in the product $\mathbb{E}[f_{ij}]\,\sigma_{ij}$.
+
+\subsection{Conditioning on the market}
+
+Let $n_0 = x_0'x_0$, $h = x_0/\sqrt{n_0}$ and $M = I_T - hh'$. Define
+\[
+  y_i = h'x_i, \qquad R_{ij} = x_i' M x_j, \qquad \mu_i = \beta_i\sqrt{n_0}.
+\]
+Since $s_{0i} = x_0'x_i/T$ and $s_{00} = n_0/T$, and $I_T = hh' + M$,
+\[
+  f_{ij} = \frac{s_{0i}s_{0j}}{s_{00}} = \frac{y_iy_j}{T}, \qquad s_{ij} = \frac{y_iy_j + R_{ij}}{T}.
+\]
+So $f_{ij}$ is the part of $s_{ij}$ along the market direction, and $R_{ij}/T$ is the part orthogonal to it. The following quantities depend only on the market series and on $A$, so they are computable:
+\begin{gather*}
+  q = h'Ah, \qquad q_2 = h'A^2h, \qquad w = q_2 - q^2, \\
+  m_1 = \operatorname{tr}(MA) = T - q, \qquad m_2 = \operatorname{tr}(MAMA) = \operatorname{tr}(A^2) - 2q_2 + q^2.
+\end{gather*}
+
+\begin{lemma}[Conditional moments]\label{lem:serial-moments}
+Under Assumption 2, conditional on $x_0$:
+\begin{enumerate}
+  \item[(i)] $(y_1, \dots, y_N)' \sim N(\mu, q\Psi)$;
+  \item[(ii)] $\mathbb{E}[R_{ij}] = \psi_{ij}m_1$ and $\operatorname{Cov}(R_{ij}, R_{kl}) = (\psi_{ik}\psi_{jl} + \psi_{il}\psi_{jk})\,m_2$;
+  \item[(iii)] with $e_i = y_i - \mu_i$: $\mathbb{E}[e_kR_{mn}] = 0$ and
+  \[
+    \mathbb{E}[e_ke_lR_{mn}] = q\,m_1\,\psi_{kl}\psi_{mn} + w\,(\psi_{km}\psi_{ln} + \psi_{kn}\psi_{lm}).
+  \]
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+Given $x_0$, the residuals are still normal with $\operatorname{Cov}(\varepsilon_i, \varepsilon_j) = \psi_{ij}A$, by independence. (i) $y_i = \mu_i + h'\varepsilon_i$ and $\operatorname{Cov}(h'\varepsilon_i, h'\varepsilon_j) = \psi_{ij}\,h'Ah$. (ii) $Mx_0 = 0$, so $R_{ij} = \varepsilon_i'M\varepsilon_j$. For zero-mean normal vectors, $\mathbb{E}[\varepsilon_i'K\varepsilon_j] = \psi_{ij}\operatorname{tr}(KA)$ and $\operatorname{Cov}(\varepsilon_i'K\varepsilon_j, \varepsilon_k'L\varepsilon_l) = (\psi_{ik}\psi_{jl} + \psi_{il}\psi_{jk})\operatorname{tr}(KALA)$ (Isserlis' theorem); take $K = L = M$. (iii) $e_kR_{mn}$ is a product of three zero-mean normals, so its mean is zero. For four zero-mean normals, $\mathbb{E}[abcd] = \mathbb{E}[ab]\mathbb{E}[cd] + \mathbb{E}[ac]\mathbb{E}[bd] + \mathbb{E}[ad]\mathbb{E}[bc]$. Apply this to $e_ke_l\,\varepsilon_{sm}\varepsilon_{tn}M_{st}$ summed over $s,t$. The first pairing gives $q\psi_{kl}\cdot m_1\psi_{mn}$. For the other two, $\operatorname{Cov}(h'\varepsilon_k, \varepsilon_{sm}) = \psi_{km}(Ah)_s$, so they give $(\psi_{km}\psi_{ln} + \psi_{kn}\psi_{lm})\,(Ah)'M(Ah)$, and $(Ah)'M(Ah) = h'A^2h - (h'Ah)^2 = w$.
+\end{proof}
+
+\paragraph{Remark (what $w$ measures).}
+By Cauchy--Schwarz, $w \geq 0$, with $w = 0$ exactly when $Ah$ is a multiple of $h$, that is, when the market series is an eigenvector of $A$. When $A = I_T$ this always holds, and $w = 0$ is what makes the fitted and residual parts uncorrelated in Section~\ref{sec:thm1}. So $w$ is the precise amount by which serial correlation breaks the independence argument [citation pending: Kruskal (1968)].
+
+\begin{lemma}[Residual products]\label{lem:serial-psi}
+Let $D = (m_1^2 - m_2)(m_1^2 + 2m_2)$, which is positive, and define
+\[
+  \hat u_{ij} = \frac{m_1^2R_{ij}^2 - m_2R_{ii}R_{jj}}{D}, \qquad
+  \hat v_{ij} = \frac{(m_1^2 + m_2)R_{ii}R_{jj} - 2m_2R_{ij}^2}{D}.
+\]
+Then $\mathbb{E}[\hat u_{ij} \mid x_0] = \psi_{ij}^2$ and $\mathbb{E}[\hat v_{ij} \mid x_0] = \psi_{ii}\psi_{jj}$.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:serial-moments}(ii), $\mathbb{E}[R_{ij}^2 \mid x_0] = (m_1^2 + m_2)\psi_{ij}^2 + m_2\psi_{ii}\psi_{jj}$ and $\mathbb{E}[R_{ii}R_{jj} \mid x_0] = 2m_2\psi_{ij}^2 + m_1^2\psi_{ii}\psi_{jj}$. Solving these two linear equations for $\psi_{ij}^2$ and $\psi_{ii}\psi_{jj}$ gives $\hat u_{ij}$ and $\hat v_{ij}$; the determinant is $D$. The matrix $MAM$ has $T - 1 \geq 2$ positive eigenvalues, with sum $m_1$ and sum of squares $m_2$, so $m_1^2 > m_2$ and $D > 0$.
+\end{proof}
+
+\begin{lemma}[Market-weighted products]\label{lem:serial-mu}
+Define
+\begin{align*}
+  \hat G_{ij} &= \bigl(y_iy_jR_{ij} - q\,m_1\hat u_{ij} - w(\hat u_{ij} + \hat v_{ij})\bigr)/m_1, \\
+  \hat H_{ij} &= \bigl(y_i^2R_{jj} - q\,m_1\hat v_{ij} - 2w\,\hat u_{ij}\bigr)/m_1, \\
+  \hat K_{ij} &= y_i^2y_j^2 - q\,(\hat H_{ij} + \hat H_{ji} + 4\hat G_{ij}) - q^2(\hat v_{ij} + 2\hat u_{ij}).
+\end{align*}
+Conditional on $x_0$, these have means $\mu_i\mu_j\psi_{ij}$, $\mu_i^2\psi_{jj}$ and $\mu_i^2\mu_j^2$.
+\end{lemma}
+
+\begin{proof}
+Write $y_ky_l = \mu_k\mu_l + \mu_ke_l + \mu_le_k + e_ke_l$. By Lemma~\ref{lem:serial-moments}(ii)--(iii),
+\[
+  \mathbb{E}[y_ky_lR_{mn} \mid x_0] = m_1\mu_k\mu_l\psi_{mn} + q\,m_1\psi_{kl}\psi_{mn} + w(\psi_{km}\psi_{ln} + \psi_{kn}\psi_{lm}).
+\]
+Taking $(k,l,m,n) = (i,j,i,j)$ and replacing $\psi_{ij}^2$ and $\psi_{ii}\psi_{jj}$ by their unbiased estimates from Lemma~\ref{lem:serial-psi} gives $\hat G_{ij}$; taking $(i,i,j,j)$ gives $\hat H_{ij}$. For $\hat K_{ij}$, the fourth moment of a bivariate normal with mean $(\mu_i, \mu_j)$ and covariance $q\Psi$ is
+\[
+  \mathbb{E}[y_i^2y_j^2 \mid x_0] = \mu_i^2\mu_j^2 + q(\mu_i^2\psi_{jj} + \mu_j^2\psi_{ii} + 4\mu_i\mu_j\psi_{ij}) + q^2(\psi_{ii}\psi_{jj} + 2\psi_{ij}^2).
+\]
+Replace each term on the right other than $\mu_i^2\mu_j^2$ by its unbiased estimate.
+\end{proof}
+
+\begin{lemma}[Removing the conditioning]\label{lem:serial-uncond}
+$\mathbb{E}[n_0] = T\sigma_{00}$, $\mathbb{E}[n_0^2] = \sigma_{00}^2\,(T^2 + 2\operatorname{tr}A^2)$, and
+\[
+  \mathbb{E}[f_{ij}] = \sigma_{00}\beta_i\beta_j + \frac{\kappa}{T}\,\psi_{ij}, \qquad
+  \kappa = \mathbb{E}[q] = \int_0^\infty \prod_{t=1}^T (1 + 2u\lambda_t)^{-1/2} \sum_{t=1}^T \frac{\lambda_t^2}{1 + 2u\lambda_t}\, du,
+\]
+where $\lambda_1, \dots, \lambda_T$ are the eigenvalues of $A$. The constant $\kappa$ depends only on $A$.
+\end{lemma}
+
+\begin{proof}
+Write $x_0 = \sqrt{\sigma_{00}}A^{1/2}z$ with $z \sim N_T(0, I)$. Then $n_0 = \sigma_{00}z'Az$ has mean $\sigma_{00}\operatorname{tr}A = T\sigma_{00}$ and variance $2\sigma_{00}^2\operatorname{tr}A^2$. By Lemma~\ref{lem:serial-moments}(i), $\mathbb{E}[f_{ij} \mid x_0] = (\mu_i\mu_j + q\psi_{ij})/T = (\beta_i\beta_jn_0 + q\psi_{ij})/T$; take expectations. Finally $q = z'A^2z/z'Az$ does not depend on $\sigma_{00}$. Using $1/a = \int_0^\infty e^{-ua}\,du$ and $\mathbb{E}[z'Pz\,e^{-u z'Qz}] = \det(I + 2uQ)^{-1/2}\operatorname{tr}\bigl(P(I + 2uQ)^{-1}\bigr)$ with $P = A^2$, $Q = A$ gives the integral [citation pending: Magnus (1986)].
+\end{proof}
+
+\subsection{Result}
+
+\begin{theorem}[Exact SURE under serial correlation]\label{thm:serial}
+Under Assumption 2, let $\tau = \operatorname{tr}(A^2)/T^2$ and define
+\begin{align*}
+  \widehat{\operatorname{Var}}(s_{ij}) &= \frac{\tau(1 - 2\tau)\,s_{ij}^2 + \tau\,s_{ii}s_{jj}}{(1 - \tau)(1 + 2\tau)}, \\
+  \widehat{\operatorname{Cov}}(f_{ij}, s_{ij}) &= f_{ij}s_{ij} - \left[\frac{\hat K_{ij}}{T^2 + 2\operatorname{tr}A^2} + \Bigl(1 + \frac{\kappa}{T}\Bigr)\frac{\hat G_{ij}}{T} + \frac{\kappa}{T}\,\hat u_{ij}\right] \quad (i \neq j),
+\end{align*}
+and $\widehat{\operatorname{Cov}}(f_{ii}, s_{ii}) = \widehat{\operatorname{Var}}(s_{ii})$. Then
+\[
+  \operatorname{SURE}(\alpha) = \alpha^2\|F - S\|^2 + (1 - 2\alpha)\sum_{i,j}\widehat{\operatorname{Var}}(s_{ij}) + 2\alpha\sum_{i,j}\widehat{\operatorname{Cov}}(f_{ij}, s_{ij})
+\]
+satisfies $\mathbb{E}[\operatorname{SURE}(\alpha)] = R(\alpha)$ for every $\alpha$, every $N$ and every $T \geq 3$. Its minimizer over $[0,1]$ is
+\[
+  \hat\alpha = \min\Bigl\{1, \max\Bigl\{0,\ \frac{\sum_{i,j}\widehat{\operatorname{Var}}(s_{ij}) - \sum_{i,j}\widehat{\operatorname{Cov}}(f_{ij}, s_{ij})}{\|F - S\|^2}\Bigr\}\Bigr\}.
+\]
+\end{theorem}
+
+\begin{proof}
+\emph{Variance term.} The pair $(x_i, x_j)$ is normal with $\operatorname{Cov}(x_i, x_j) = \sigma_{ij}A$, so by Isserlis' theorem $\operatorname{Var}(x_i'x_j) = (\sigma_{ij}^2 + \sigma_{ii}\sigma_{jj})\operatorname{tr}A^2$ and $\operatorname{Var}(s_{ij}) = (\sigma_{ij}^2 + \sigma_{ii}\sigma_{jj})\tau$. Hence $\mathbb{E}[s_{ij}^2] = (1 + \tau)\sigma_{ij}^2 + \tau\sigma_{ii}\sigma_{jj}$ and $\mathbb{E}[s_{ii}s_{jj}] = 2\tau\sigma_{ij}^2 + \sigma_{ii}\sigma_{jj}$. The stated combination has expectation $\tau(\sigma_{ij}^2 + \sigma_{ii}\sigma_{jj})$, which is checked by matching the coefficients of $\sigma_{ij}^2$ and $\sigma_{ii}\sigma_{jj}$.
+
+\emph{Covariance term, $i \neq j$.} $\operatorname{Cov}(f_{ij}, s_{ij}) = \mathbb{E}[f_{ij}s_{ij}] - \mathbb{E}[f_{ij}]\sigma_{ij}$. With $\sigma_{ij} = \sigma_{00}\beta_i\beta_j + \psi_{ij}$ and Lemma~\ref{lem:serial-uncond},
+\[
+  \mathbb{E}[f_{ij}]\,\sigma_{ij} = \sigma_{00}^2\beta_i^2\beta_j^2 + \Bigl(1 + \frac{\kappa}{T}\Bigr)\sigma_{00}\beta_i\beta_j\psi_{ij} + \frac{\kappa}{T}\psi_{ij}^2.
+\]
+By Lemmas~\ref{lem:serial-psi}--\ref{lem:serial-uncond} and the tower property: $\mathbb{E}[\hat K_{ij}] = \beta_i^2\beta_j^2\,\mathbb{E}[n_0^2] = \sigma_{00}^2\beta_i^2\beta_j^2(T^2 + 2\operatorname{tr}A^2)$; $\mathbb{E}[\hat G_{ij}] = \beta_i\beta_j\psi_{ij}\,\mathbb{E}[n_0] = T\sigma_{00}\beta_i\beta_j\psi_{ij}$; and $\mathbb{E}[\hat u_{ij}] = \psi_{ij}^2$. So the bracket in $\widehat{\operatorname{Cov}}$ is unbiased for $\mathbb{E}[f_{ij}]\sigma_{ij}$, and $f_{ij}s_{ij}$ is unbiased for $\mathbb{E}[f_{ij}s_{ij}]$.
+
+\emph{Diagonal.} $f_{ii} = s_{ii}$, so $\operatorname{Cov}(f_{ii}, s_{ii}) = \operatorname{Var}(s_{ii})$.
+
+$\|F - S\|^2$ is unbiased for its own expectation. Combining the three pieces in Yi's identity, by linearity of expectation, gives $\mathbb{E}[\operatorname{SURE}(\alpha)] = R(\alpha)$. The minimizer follows because $\operatorname{SURE}$ is a convex quadratic in $\alpha$.
+\end{proof}
+
+\paragraph{Remarks.}
+\begin{enumerate}
+  \item \emph{The i.i.d.\ case.} With $A = I_T$: $\tau = 1/T$, and $\widehat{\operatorname{Var}}(s_{ij})$ becomes $[(T-2)s_{ij}^2 + T s_{ii}s_{jj}]/[(T+2)(T-1)]$, the estimator of Section~\ref{sec:thm1}. Also $q = q_2 = \kappa = 1$, $w = 0$ and $m_1 = m_2 = T - 1$. The covariance estimator is then a second unbiased estimator for the i.i.d.\ case, built differently from the one in Section~\ref{sec:thm1}.
+  \item \emph{What must be known.} $A$ enters only through $q$, $q_2$, $\operatorname{tr}A^2$ and $\kappa$. For overlapping returns, $A$ is known exactly. If $A$ is estimated, for example by fitting $\phi$, the plug-in SURE is no longer exactly unbiased.
+  \item \emph{Ignoring the dependence.} Using the i.i.d.\ formulas when $A \neq I_T$ understates every $\operatorname{Var}(s_{ij})$ by the factor $\operatorname{tr}(A^2)/T$, which is about $2.8$ for $\phi = 0.7$ and $3.3$ for overlapping five-day returns with $T = 40$.
+\end{enumerate}
+
+% Monte Carlo verification (kept local until the numerics section is settled):
+%   sims/check_goal2_sure.py   E[SURE(alpha)] = R(alpha) within 2 s.e. for A = I, AR(1) phi = 0.7, overlapping k = 5
+%   sims/check_goal2_cov_hat.py   pairwise bias of Cov-hat is zero within 2 s.e. (T = 10, phi = 0.7, 400k reps)

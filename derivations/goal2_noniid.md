@@ -17,7 +17,7 @@ Working notes, 2026-11-11. Each step is marked by whether it needs i.i.d. days.
 | 2. s_ij = f_ij + ψ̂_ij | No (algebra) | unchanged |
 | 3. Cov(f, ψ̂) = 0 | YES (IK Lemma A.2 needs Wishart = i.i.d. rows) | fails unless H A (I−H) = 0 (Kruskal 1968: market series spans an invariant subspace of A) |
 | 4. Cov(f_ij, s_ij) closed form | No | see below; MC verified (sims/check_goal2_cov_formula.py) |
-| 5. Unbiased estimation | **STOP: uses independence** | see "Where it stops" |
+| 5. Unbiased estimation | No (solved 2026-11-11) | Theorem 2, thesis/sec6_serial.tex; MC: sims/check_goal2_sure.py, sims/check_goal2_cov_hat.py |
 
 Step 4 formula (H = x0 x0ᵀ / x0ᵀx0, c = x0ᵀx0/T, q = x0ᵀA x0/x0ᵀx0, q2 = x0ᵀA² x0/x0ᵀx0):
 
@@ -38,3 +38,9 @@ Goal 1's unbiased estimators used three i.i.d. facts that now fail:
 3. Market variance c is chi-square with T df: now a weighted chi-square (eigenvalues of A).
 
 Replacements (to do): all three are moments of quadratic forms in Gaussians with KNOWN matrices given x0 (Magnus 1978), so conditional unbiased estimators should exist. E[q2] depends only on A (scale-free) and is a computable constant; Cov(c, q) = σ00·κ(A) with κ(A) computable.
+
+## Step 5 solved (2026-11-11)
+Route: Cov(f,s) = E[fs] - E[f]*sigma_ij; f*s is its own unbiased estimate, so only E[f]*sigma_ij is needed.
+Key rewrite: f_ij = y_i y_j / T, s_ij = (y_i y_j + R_ij)/T with y = h'x, R = x'Mx (h = x0/|x0|, M = I - hh').
+Given x0: y ~ N(mu, q Psi); R moments use m1 = tr(MA), m2 = tr(MAMA); cross moment adds w = q2 - q^2 (w = 0 iff A=I-like).
+Needs one constant kappa = E[q] (1-D integral over eigenvalues of A). Full statement and proof: thesis/sec6_serial.tex (also on Overleaf Section 6).
