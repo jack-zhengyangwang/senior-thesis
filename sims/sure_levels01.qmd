@@ -233,7 +233,7 @@ ggsave("out/levels01_performance_curve.png", width = 9, height = 4, dpi = 160)
 # x-axis: delta = ||Sigma - I||_F, the distance from the target (the analogue of ||theta||).
 # One curve per dimension N, as with different p in the James-Stein experiment.
 
-dims   <- c(5, 10, 20, 50)
+dims   <- c(5, 10, 20, 50, 100, 200)
 deltas <- 0:10
 n_samples <- 3000
 Spike <- tibble()
@@ -301,7 +301,7 @@ Spike |>
     geom_line(linewidth = 1) +
     geom_point(size = 1.5) +
     geom_hline(yintercept = 1, linetype = "dashed", color = "gray") +
-    scale_color_manual(values = c("5" = "#9ec5f4", "10" = "#5b9be6", "20" = "#2a78d6", "50" = "#0d3f80")) +
+    scale_color_manual(values = c("5" = "#c6dcf7", "10" = "#9ec5f4", "20" = "#5b9be6", "50" = "#2a78d6", "100" = "#1a56a8", "200" = "#0b2f5e")) +
     labs(title = "Level 0: risk of SURE-chosen shrinkage relative to S",
          x = "Distance from the target, ||Sigma - I||_F (spike size delta)",
          y = "Risk ratio (SURE-chosen / S)", color = "Dimension N") +
