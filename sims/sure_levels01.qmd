@@ -323,8 +323,8 @@ Spike |>
     geom_hline(yintercept = 1, linetype = "dashed", color = "gray") +
     scale_color_manual(values = c("5" = "#c6dcf7", "10" = "#9ec5f4", "20" = "#5b9be6", "50" = "#2a78d6", "100" = "#1a56a8", "200" = "#0b2f5e")) +
     coord_cartesian(ylim = c(0, 1.02)) +
-    labs(x = "Distance from the target, ‖Σ − I‖ (spike size δ)",
-         y = "Risk relative to S", color = "N") +
+    labs(x = "Distance from the target, ‖Σ − I‖",
+         y = "Risk over S", color = "N") +
     theme_minimal(base_size = 12)
 ggsave("out/level0_risk_ratio_thesis.png", width = 7, height = 4, dpi = 200)
 ```

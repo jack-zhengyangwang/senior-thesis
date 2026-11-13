@@ -201,3 +201,50 @@ Overleaf structure now (labels in parentheses):
 Sims: sims/sure_levels01.qmd (Levels 0/1 R notebook), sims/level0_risk_ratio.R (fast, 14 s; reuses draws across delta).
 Next: write §7 (Goal 1 proofs) into Overleaf; idea: quadratic-form view f_ij = x_i'Hx_j/T, H = market projection, as §7 setup unifying §7/§8. Bao-Kan (2013) only useful for exact Goal 2 TRUE-risk curves (not SURE); not yet downloaded or cited.
 Pending decisions: add Magnus 1978/1986, Kruskal 1968, Bartz-Muller 2014, Sancetta 2008, Richardson-Smith 1991 to biblio.bib; §2.5 "[citation pending]". Rosenman meeting: confirm performance-curve x-axis and benchmarks.
+
+## Session 2026-11-12 (evening): §4 walkthrough with Jack + Yi–Zou formula finding
+Overleaf scratch edits (all in §4 unless noted; Jack reads everything in scratch):
+- Setup: added two-line display "mean unknown: (1/T)Σ(x_ta−x̄_a)(x_tb−x̄_b) / mean known to be 0: s_ab = (1/T)Σ x_ta x_tb".
+- Setup: added Jack's intuition for the single-index split (market fluctuation projected onto each stock via β_i = σ_0i/σ_00, plus idiosyncratic ψ_i; stocks co-move only through the market, hence Ψ diagonal).
+- Step 1: replaced the hand expansion with a direct application of Yi's lemma (§3.2): σ̂_ij = αf_ij + (1−α)s_ij, Cov(σ̂,s) = αCov(f,s) + (1−α)Var(s). Step 2 opener updated to match.
+- Subsection titles: dropped "Step n:" → "Expanding the risk" (sec:step-risk), "Stein's lemma for the cross term" (sec:step-cross), "Estimating the variance term" (sec:step-var). Prose still says "Step 1/2/3" in §4–§6 (Jack OK for now).
+- Variance section: added a line-by-line derivation of Var(s_ij) = (σ_iiσ_jj + σ_ij²)/T via lem:stein-cov with f_ij = s_ij (z_i = x_ti, φ = x_tj s_ij).
+- Kronecker δ_ik → indicator \mathbf{1}\{i = k\} throughout §4–§6 (Jack's preference). δ_ii in §3.1 is LW residual variance, left alone.
+- Multivariate Stein lemma: short proof added then REMOVED at Jack's request. TODO: add \citealp{stein1981} to the lemma header (Stein proves Σ = I; general Σ via z = Au).
+
+Discussed (no edit): assumptions are known mean 0, Gaussian, iid across days (Rosenman's "access to something we shouldn't" → likely known mean / Gaussianity; α fixed in Steps 1–3 is fine). Repetition: §3.1 LW expansion kept; §3.2 and Setup both explain known-mean vs T−1 (decide later). Notation clash for end-of-project check: §3.1 uses Φ = σ_00²ββ' + Δ, δ_ii; §4 uses Σ = σ_00ββ' + Ψ, ψ_i.
+
+FINDING — Yi–Zou (2013) eq. (2.4) / Yi dissertation Lemma 2.2.2 eq. (2.9) is NOT unbiased:
+- Their E[σ̃ˢ_ii σ̃ˢ_jj] (dissertation eq. 2.24) = (n+1)/(n−1)σ_iiσ_jj + 2(n+2)/(n(n−1))σ_ij² is wrong; correct Wishart moment is σ_iiσ_jj + 2σ_ij²/(n−1). Slip is in (2.20): middle terms need a factor n (Σ(x−x̄)² = Σx² − n x̄²). (2.9) is a correct solve of the wrong moment.
+- MC (400k reps, Σ = [2 1; 1 3]): n=5 true 1.750, Yi–Zou (MLE) 1.276; corrected [(n−3)s_ij² + (n−1)s_iis_jj]/((n+1)(n−2)) gives 1.744; n=10 0.778 vs 0.663 vs 0.778.
+- Li & Zou (2016), IEEE Trans. Inf. Theory 62(4):2153–2169, arXiv 1406.6514, §II.A eq. (3) silently uses the CORRECTED coefficients a_n = n(n−3)/((n−1)(n−2)(n+1)), b_n = n/((n+1)(n−2)); verified they equal our corrected estimator × (n−1)/n on the MLE scale. No erratum for Yi–Zou found. PDF saved: papers/Li-Zou2016.pdf.
+- Thesis known-mean estimator [(T−2)s_ij² + T s_iis_jj]/((T+2)(T−1)) is correct (our own two-moment-equation solve). Cite Yi–Zou for the method, Li–Zou (2016) for the corrected estimated-mean coefficients; footnote the discrepancy.
+- ⏰ RAISE WITH ROSENMAN before any claim goes into the proper paper.
+Relevant Li–Zou sections: §II.A (eq. 2–3, the estimator), §III.B (SURE tuning vs oracle tuning: relevant to the α̂ question later), §II.B optional.
+
+Rules (Jack, 2026-11-12): free to write in the Overleaf SCRATCH project; ALWAYS ask before committing text to the proper/final paper.
+
+### 2026-11-12 (late): Level 0 figure relabel + non-monotone curve
+- Fixed §2.1 overfull hbox in scratch (Cov formulas moved to a two-line gather*). Scratch compiles clean: 0 errors, 0 box warnings.
+- Figure 1 (`sims/level0_risk_ratio.R`, also the thesis chunk in `sims/sure_levels01.qmd`): x label now "Distance from the target, ‖Σ − I‖" (dropped "spike size δ"), y label "Risk over S". PNG regenerated and re-uploaded to the scratch Overleaf. Paragraph and caption there still say Σ = I + δvv′ (not changed).
+- Finding: the SURE-tuned curve is NOT monotone for small N. N=5 peaks at 0.983 (distance 6.5) then falls to 0.965 at 40; N=10 peaks at 0.962 (distance 17) then 0.956. N>=50 still rising at 40.
+- Reason: every curve tends to T/(T+2) = 0.952 (T=40), not to 1. Var(S) grows like δ² just like the squared distance, so the best α settles at 2/(T+2), and α-hat tends to the same constant. Oracle-α ratio = Tδ²/((T+2)δ² + (2N+2)δ + N² + N) is monotone (0.898 at 6.5 and 0.945 at 40 for N=5); the hump is the cost of estimating α with few entries.
+- Scratch sentence "it fades as Σ moves away from the target" is loose given this: the gain levels off at 2/(T+2), about 5%. Not edited yet.
+- Scratch Level 0: added 3 sentences on the non-monotone curve (alpha* vs alpha-hat, cost of estimating alpha, limits T/(T+2) and 2/(T+2); limits are my algebra, not yet derived in the thesis).
+- Scratch Level 1 opening rewritten in the Level 0 structure: estimator Σ-hat = α ν I + (1−α) S; "What changes in the risk" (cross term keeps N diagonal terms, underbrace ≠ 0); "What simplifies" (lemma derivation kept + direct check Σ_i Cov(ν, s_ii) = Var(tr S)/N = 2 tr(Σ²)/(NT)); "What does not simplify" (cross term must be estimated; two unknown scalars). Rest of Level 1 (moments, V-hat, b-hat, SURE, α-hat, Checks) untouched. Compiles clean.
+- Scratch Level 1 "What simplifies" expanded at Jack's request: (1) write ν as (1/NT) Σ_u Σ_m x_um², (2) differentiate w.r.t. x_tk to get 2x_tk/(NT) (zero for the market, k = 0), (3) six-line align* substituting into Lemma stein-cov, with a line-by-line sentence; then the sum over (i,j) and the variance check now written as N·Var(ν), matching Jack's "it should be a variance" intuition. Compiles clean.
+- Scratch Level 1 simplified again (Jack: "do we have to have m ... I thought we can directly push through"): removed the step that rewrote ν as a double sum with extra indices. Derivative now comes straight from tr(S) = s_11 + ... + s_NN and the ∂s_ij/∂x_tk formula already in sec:step-var (i = j = k gives 2x_tk/T). Two steps left: differentiate, substitute into the lemma. Compiles clean.
+- Scratch Level 1 "What simplifies" cut down at Jack's request ("only keep the covariance proof"): now only Σ_i Cov(ν, s_ii) = Cov(ν, Nν) = N·Var(ν) = Var(tr S)/N = 2tr(Σ²)/(NT). The Stein-lemma derivation (derivative of ν + six-line align*) was REMOVED from Level 1. Consequence to revisit: Level 1 no longer uses Lemma stein-cov, so Level 2 is the first target where the derivative route is actually carried out. Old text recoverable from Overleaf History. Compiles clean.
+
+### 2026-11-13: Level 1 "What does not simplify" + end-of-day handoff
+- Jack asked whether the MGF / numerical-integral method from the James–Stein performance-curve project has a parallel at Level 1. Answer: no. Level 1 only needs polynomials in S, so everything is closed form. Real parallels are (a) the performance curve itself, where α-hat is a ratio, and (b) Level 2, where f_ij = s_0i s_0j / s_00 has a random denominator. Jack is fine with no parallel here.
+- Explained in chat what "estimating the trace" takes: tr S is already unbiased for tr Σ; the risk needs A = (tr Σ)² and B = tr(Σ²), and the plug-ins P = (tr S)², Q = tr(S²) are biased upward. Three steps: compute P and Q; use E[P] = A + 2B/T and E[Q] = B + (A + B)/T; solve the two linear equations. Gives Â = T[(T+1)P − 2Q]/((T+2)(T−1)), B̂ = T[TQ − P]/((T+2)(T−1)), and V̂ = (Â + B̂)/T. Worked example T = 40, tr S = 5, tr(S²) = 10: Â = 24.54, B̂ = 9.16, V̂ = 0.8425 (plug-in 0.875).
+- Jack could not follow the scratch text after "What does not simplify" ("I do not know what I am looking at"). Diagnosis: the text has no short names for the unknowns, never says what the two moment equations are for, and jumps from them straight to V̂ and b̂ (the solve is not shown, and the estimate of (tr Σ)² never appears on its own). NO EDIT MADE. Offered rewrite, not yet accepted: name the two unknowns, say the plug-ins are biased, show the solve as its own step, then V̂, b̂, SURE(α), α-hat.
+- Scratch Overleaf state at end of day: 578 lines, compiles with 0 errors and 0 warnings. All edits from 2026-11-12/13 are live there (Overleaf saves automatically; old versions in its History). The repo does NOT hold a copy of the current main.tex; thesis/sec4_stein.tex is older.
+- Code: sims/level0_hump_check.R added (decomposes the SURE risk ratio into oracle ratio + cost of estimating α for N = 5, 20, 50; backs the non-monotone-curve finding).
+
+RESUME HERE (next session):
+1. Level 1, "What does not simplify": do the rewrite above if Jack wants it, then walk through SURE(α), α-hat vs α*, and the Checks paragraph.
+2. §5.3 (term dropped by Ledoit–Wolf 2004), then Level 2.
+3. Open, not acted on: "it fades as Σ moves away from the target" is loose (gain levels off near 5%); Level 0 paragraph and caption still say Σ = I + δvv′; two remaining $$ displays in §2.1; Level 2 narrative now that Level 1 no longer uses Lemma stein-cov; notation check §3.1 vs §4; plain vs squared distance on the performance-curve axes.
+4. For Rosenman: Yi–Zou eq. 2.4 bias finding; the numerical-integral question; the T/(T+2) limit before it goes into the proper paper.
