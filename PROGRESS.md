@@ -191,3 +191,13 @@ Needs Jack's OK: citing Chen et al. (RBLW/OAS) and Touloumis in §6.
 - 2026-11-11 Goal 2 derivation: Cov(f,s) closed form without iid (derivations/goal2_noniid.md), MC verified at T=10/30, φ=0/.5/.9 (sims/check_goal2_cov_formula.py); iid formula off by ×6–8 at φ=.9. Stops at unbiased estimation (needs replacements for IK independence, Wishart residuals, chi-square market variance).
 
 - 2026-11-11: Goal 2 step 5 SOLVED. Theorem 2 (exact SURE under known serial correlation A, single-index target) written with full proofs in thesis/sec6_serial.tex and pasted into Overleaf Section 6 (compiles, 0 errors). Verified by Monte Carlo: E[SURE] = R(alpha) within 2 s.e. for A = I, AR(1) phi = 0.7, overlapping k = 5 (sims/check_goal2_sure.py); pairwise Cov-hat unbiased at T = 10 (sims/check_goal2_cov_hat.py). Citations still pending: Kruskal 1968, Magnus 1986. Sims NOT in Overleaf (waiting on Rosenman).
+
+## Handoff 2026-11-12 (end of long session)
+Overleaf structure now (labels in parentheses):
+- §4 Stein's Approach (general recipe): 4.1 Setup (single-index target, market as series 0, four-block Sigma-bar/S-bar following IK), 4.2 Step 1 expand risk, 4.3 Step 2 Stein lemma stated for f_ij (lem:stein-cov; proof uses independence across days), 4.4 Step 3 variance term via Yi-Zou (known-mean version).
+- §5 Targets with an Exact SURE (sec:levels01): Level 0 fixed target I (+ Figure 1, fig:level0, level0_risk_ratio_thesis.png), Level 1 scaled identity, 5.3 term dropped by LW2004 (lem:dropped: 2/(N(N+1)) <= C/V <= 1/N).
+- §6 Single-Index Target: Where the Derivative Route Stops (sec:level2): Stein formula for Cov(f_ij,s_ij) (MC-verified, sims/check_stein_single_index.py); Step 3 never closes because of 1/s_00.
+- §7 Exact SURE single-index (sec:thm1), §8 Serially Correlated (sec:thm2), §9 Numerics, §10 Conclusion: SKELETONS ONLY (Jack's request). Full §8 Goal 2 text saved in thesis/sec6_serial.tex.
+Sims: sims/sure_levels01.qmd (Levels 0/1 R notebook), sims/level0_risk_ratio.R (fast, 14 s; reuses draws across delta).
+Next: write §7 (Goal 1 proofs) into Overleaf; idea: quadratic-form view f_ij = x_i'Hx_j/T, H = market projection, as §7 setup unifying §7/§8. Bao-Kan (2013) only useful for exact Goal 2 TRUE-risk curves (not SURE); not yet downloaded or cited.
+Pending decisions: add Magnus 1978/1986, Kruskal 1968, Bartz-Muller 2014, Sancetta 2008, Richardson-Smith 1991 to biblio.bib; §2.5 "[citation pending]". Rosenman meeting: confirm performance-curve x-axis and benchmarks.
